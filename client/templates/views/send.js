@@ -538,7 +538,8 @@ Template['views_send'].events({
     @event submit form
     */
     'submit form': function(e, template){
-
+        var microChainDapp = TemplateVar.get('subChainDapp') || false;
+        
         var amount = TemplateVar.get('amount') || '0',
             tokenAddress = TemplateVar.get('selectedToken'),
             to = TemplateVar.getFrom('.dapp-address-input .to', 'value'),
@@ -549,13 +550,6 @@ Template['views_send'].events({
             data = getDataField(),
             contract = TemplateVar.getFrom('.compile-contract', 'contract'),
             sendAll = TemplateVar.get('sendAll');
-            
-        var shardingFlag = 0;
-        // if(TemplateVar.get('subChainDapp')){
-        //     shardingFlag = 0x1;
-        // }
-
-        // var nounce = 0x0;
 
 
         if(selectedAccount && !TemplateVar.get('sending')) {
@@ -675,16 +669,26 @@ Template['views_send'].events({
 
                 // SIMPLE TX
                 } else {
-                    chain3.mc.sendTransaction({
-                        from: selectedAccount.address,
+                    var tranData;
+                    if(microChainDapp){
+                        tranData={from: selectedAccount.address,
                         to: to,
                         data: data,
                         value: amount,
                         gas: estimatedGas,
-                        // shardingFlag: shardingFlag,
-                        // nounce: nounce,
-                        // via: selectedAccount.address
-                    }, function(error, txHash){
+                        shardingFlag: 1,
+                        nounce: 0,
+                        via: selectedAccount.address};
+                    }
+                    else{
+                        tranData={from: selectedAccount.address,
+                            to: to,
+                            data: data,
+                            value: amount,
+                            gas: estimatedGas};
+                    }
+
+                    chain3.mc.sendTransaction(tranData, function(error, txHash){
 
                         TemplateVar.set(template, 'sending', false);
 
