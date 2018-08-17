@@ -677,7 +677,7 @@ Template['views_send'].events({
                         value: amount,
                         gas: estimatedGas,
                         shardingFlag: 1,
-                        nounce: 0,
+                        nonce: 0,
                         via: selectedAccount.address};
                     }
                     else{
