@@ -223,39 +223,43 @@ Template['views_send'].onRendered(function(){
             data = getDataField(),
             tokenAddress = TemplateVar.get('selectedToken');
 
+        var microChainDapp = TemplateVar.get('subChainDapp') || false;
+
         if(_.isString(address))
             address = address.toLowerCase();
 
+        if(!microChainDapp)
+        {
+            // Mc tx estimation
+            if(tokenAddress === 'mc') {
 
-        // Mc tx estimation
-        if(tokenAddress === 'mc') {
-
-            if(McAccounts.findOne({address: address}, {reactive: false})) {
-                chain3.mc.estimateGas({
-                    from: address,
-                    to: to,
-                    value: amount,
-                    data: data,
-                    gas: defaultEstimateGas
-                }, estimationCallback.bind(template));
-
-            // Wallet tx estimation
-            } else if(wallet = Wallets.findOne({address: address}, {reactive: false})) {
-
-                if(contracts['ct_'+ wallet._id])
-                    contracts['ct_'+ wallet._id].execute.estimateGas(to || '', amount || '', data || '',{
-                        from: wallet.owners[0],
+                if(McAccounts.findOne({address: address}, {reactive: false})) {
+                    chain3.mc.estimateGas({
+                        from: address,
+                        to: to,
+                        value: amount,
+                        data: data,
                         gas: defaultEstimateGas
                     }, estimationCallback.bind(template));
+
+                // Wallet tx estimation
+                } else if(wallet = Wallets.findOne({address: address}, {reactive: false})) {
+
+                    if(contracts['ct_'+ wallet._id])
+                        contracts['ct_'+ wallet._id].execute.estimateGas(to || '', amount || '', data || '',{
+                            from: wallet.owners[0],
+                            gas: defaultEstimateGas
+                        }, estimationCallback.bind(template));
+                }
+
+            // Custom coin estimation
+            } else {
+
+                TokenContract.at(tokenAddress).transfer.estimateGas(to, amount, {
+                    from: address,
+                    gas: defaultEstimateGas
+                }, estimationCallback.bind(template));
             }
-
-        // Custom coin estimation
-        } else {
-
-            TokenContract.at(tokenAddress).transfer.estimateGas(to, amount, {
-                from: address,
-                gas: defaultEstimateGas
-            }, estimationCallback.bind(template));
         }
     });
 });
@@ -675,7 +679,7 @@ Template['views_send'].events({
                         to: to,
                         data: data,
                         value: amount,
-                        gas: estimatedGas,
+                        gas: 200000,
                         shardingFlag: 1,
                         nonce: 0,
                         via: selectedAccount.address};
