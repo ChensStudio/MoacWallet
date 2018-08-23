@@ -119,6 +119,11 @@
     <textarea readonly rows="6" cols="100">{{TemplateVar.get "executeData"}}</textarea>
     <br>
 
+    <h4>
+        {{i18n "wallet.send.provideGas"}} 
+    </h4>
+    <input type="number" min="21000" class="estimtedGasInput" value="{{estimatedGas}}">
+    <br>
     <button class="dapp-block-button execute">
         {{#if TemplateVar.get "sending"}} 
             {{i18n 'buttons.sending'}}

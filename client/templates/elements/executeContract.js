@@ -226,7 +226,7 @@ The contract function template
 
 Template['elements_executeContract_function'].onCreated(function(){
     var template = this;
-
+    TemplateVar.set('estimatedGas', 350000);
     // change the amount when the currency unit is changed
     template.autorun(function(c){
         var unit = McTools.getUnit();
@@ -249,6 +249,10 @@ Template['elements_executeContract_function'].helpers({
     }, 
     'payable': function(){
         return this && this.payable;
+    },
+   'estimatedGas': function(){
+        var estimatedGas = TemplateVar.get('estimatedGas');
+        return estimatedGas;
     }
 });
 
@@ -273,6 +277,14 @@ Template['elements_executeContract_function'].events({
         TemplateVar.set('executeData', template.data.contractInstance[template.data.name].getData.apply(null, inputs));
     },
     /**
+        React on user input on gas
+
+        @event change .estimtedGasInput
+        */
+    'change .estimtedGasInput': function(e, template) {
+        TemplateVar.set('estimatedGas', e.currentTarget.valueAsNumber);
+    },
+    /**
     Executes a transaction on contract
 
     @event click .execute
@@ -280,7 +292,7 @@ Template['elements_executeContract_function'].events({
     'click .execute': function(e, template){
         var to = template.data.contractInstance.address,
             gasPrice = 50000000000,
-            estimatedGas = 350000, /* (typeof mist == 'undefined')not working */
+            estimatedGas = TemplateVar.get('estimatedGas'), /* (typeof mist == 'undefined')not working */
             amount = TemplateVar.get('amount') || 0,
             selectedAccount = Helpers.getAccountByAddress(TemplateVar.getFrom('.execute-contract select[name="dapp-select-account"]', 'value')),
             data = TemplateVar.get('executeData');
@@ -304,7 +316,6 @@ Template['elements_executeContract_function'].events({
             var sendTransaction = function(estimatedGas){
 
                 TemplateVar.set('sending', true);
-
 
                 // CONTRACT TX
                 if(contracts['ct_'+ selectedAccount._id]) {
