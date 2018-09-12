@@ -41,7 +41,7 @@ Template['elements_account'].helpers({
     @method (account)
     */
     'account': function(){
-        return McAccounts.findOne(this.account) || Wallets.findOne(this.account) || CustomContracts.findOne(this.account);
+        return McAccounts.findOne(this.account) || Wallets.findOne(this.account) || CustomContracts.findOne(this.account) || MicroChainContracts.findOne(this.account);
     },
     /**
     Get all tokens
@@ -86,6 +86,7 @@ Template['elements_account'].helpers({
                 McAccounts.update(id, {$unset: {new: ''}});
                 Wallets.update(id, {$unset: {new: ''}});
                 CustomContracts.update(id, {$unset: {new: ''}});
+                MicroChainContracts.update(id, {$unset: {new: ''}});
             }, 1000);
 
             return true;

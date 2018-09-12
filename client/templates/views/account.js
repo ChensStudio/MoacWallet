@@ -101,6 +101,14 @@ Template['views_account'].helpers({
         return Helpers.getAccountByAddress(FlowRouter.getParam('address'));
     },
     /**
+    Get the isMicroChainContract for select contract
+
+    @method (isMicroChainContract)
+    */
+   'isMicroChainContract': function() {
+        TemplateVar.set('isMicroChainContract', FlowRouter.getParam('isMicroChainContract'));
+    },
+    /**
     Get the current jsonInterface, or use the wallet jsonInterface
 
     @method (jsonInterface)
@@ -197,6 +205,14 @@ Template['views_account'].helpers({
      */
     'displayName': function(){
          return this.ens ? this.name.split('.').slice(0, -1).reverse().join(' ▸ ') : this.name;
+    },
+    /**
+    Gets the contract events if available
+
+    @method (microChainContract)
+    */
+    'microchainContract': function(){
+        return MicroChainContracts.findOne({address: this.address.toLowerCase()});
     }
 
 });

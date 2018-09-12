@@ -6,7 +6,7 @@ Add a pending transaction to the transaction list, after sending
 
 @method addTransactionAfterSend
 */
-addTransactionAfterSend = function(txHash, amount, from, to, gasPrice, estimatedGas, data, tokenId) {
+addTransactionAfterSend = function(txHash, amount, from, to, gasPrice, estimatedGas, data, isMicroChain, tokenId) {
     var jsonInterface = undefined,
         contractName = undefined,
         txId = Helpers.makeId('tx', txHash);
@@ -29,7 +29,8 @@ addTransactionAfterSend = function(txHash, amount, from, to, gasPrice, estimated
         fee: String(gasPrice * estimatedGas),
         data: data,
         jsonInterface: jsonInterface,
-        contractName: contractName
+        contractName: contractName,
+        isMicroChain: isMicroChain
     }});
 
     // add from Account
@@ -149,11 +150,20 @@ var updateTransaction = function(newDocument, transaction, receipt){
 
                     // Add contract to the contract list
                     if(oldTx && oldTx.jsonInterface) {
-                        CustomContracts.upsert({address: receipt.contractAddress}, {$set: {
-                            address: receipt.contractAddress,
-                            name: ( oldTx.contractName || 'New Contract') + ' ' + receipt.contractAddress.substr(2, 4),
-                            jsonInterface: oldTx.jsonInterface
-                        }});
+                        if(transaction.isMicroChain === false) {
+                            CustomContracts.upsert({address: receipt.contractAddress}, {$set: {
+                                address: receipt.contractAddress,
+                                name: ( oldTx.contractName || 'New Contract') + ' ' + receipt.contractAddress.substr(2, 4),
+                                jsonInterface: oldTx.jsonInterface
+                            }});
+                        }
+                        else {
+                            MicroChainContracts.upsert({address: transaction.to}, {$set: {
+                                address: transaction.to,
+                                name: ( oldTx.contractName || 'New Contract') + ' ' + transaction.to.substr(2, 4),
+                                jsonInterface: oldTx.jsonInterface
+                            }});
+                        }
 
 
                         //If it looks like a token, add it to the list

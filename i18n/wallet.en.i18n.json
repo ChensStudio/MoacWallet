@@ -254,6 +254,9 @@
             "transactionSent": "Transaction sent",
             "subChainDapp": "MicroChain Dapp",
             "subChainBaseAddress": "MicroChain Base Address",
+            "nonce": "Nonce",
+            "monitorAddr": "SCS Monitor Address",
+            "monitorPort": "SCS Monitor Port",
             "error": {
                 "emptyWallet": "The account you want to send from is empty.",
                 "notEnoughFunds": "You don't have enough funds in the account.",
@@ -317,6 +320,7 @@
             "jsonInterface": "JSON Interface",
             "contractInformation": "Contract information",
             "addedContract": "Added custom contract",
+            "addedMicroChainContract": "Added MicroChain contract",
             "readFromContract": "Read from contract",
             "writeToContract": "Write to contract",
             "pickContract": "Pick a contract",

@@ -13,7 +13,7 @@
         <h3>{{i18n "wallet.contracts.motherChainContracts"}}</h3>
         <div class="wallet-box-list">
         {{#each customContracts}}
-            {{> elements_account account=_id isContract=true}}
+            {{> elements_account account=_id isContract=true isMicroChainContract="false"}}
         {{/each}}
         </div>
         <br>
@@ -25,19 +25,19 @@
         </button>  
         <div class="dapp-clear-fix"></div>
         <br>
-        <!-- <h3>{{i18n "wallet.contracts.microChainContracts"}}</h3>
+        <h3>{{i18n "wallet.contracts.microChainContracts"}}</h3>
         <div class="wallet-box-list">
-        {{#each customContracts}}
-            {{> elements_account account=_id isContract=true}}
+        {{#each microChainContracts}}
+            {{> elements_account account=_id isContract=true isMicroChainContract="true"}}
         {{/each}}
         </div>
-        <button class="wallet-box create add-contract">
+        <button class="wallet-box create add-microchain-contract">
             <div class="account-pattern">
                 +
             </div>
             <h3>{{i18n "wallet.contracts.addMicroChainContract"}}</h3>
         </button>  
-        <div class="dapp-clear-fix"></div> -->
+        <div class="dapp-clear-fix"></div>
         <br><br>
         <h2>{{{i18n "wallet.tokens.title"}}}</h2>
         <p>

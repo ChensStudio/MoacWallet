@@ -190,7 +190,7 @@ The account route.
 
 @method send
 */
-FlowRouter.route('/account/:address', {
+FlowRouter.route('/account/:address/:isMicroChainContract?', {
     name: 'account',
     action: function(params, queryParams) {
         BlazeLayout.render('layout_main', {

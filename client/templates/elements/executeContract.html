@@ -38,7 +38,6 @@
                     <div class="col col-4 mobile-full contract-functions">
                         {{#with (TemplateVar.get "contractFunctions")}}                    
                             <h2>{{i18n "wallet.contracts.writeToContract"}}</h2>
-                            
                             <h4>Select Function</h4>
                             <select class="select-contract-function" name="select-contract-function">
                                 <option disabled selected>{{i18n "wallet.contracts.pickFunction"}}</option>
@@ -124,6 +123,23 @@
     </h4>
     <input type="number" min="21000" class="estimtedGasInput" value="{{estimatedGas}}">
     <br>
+    {{#if isMicroChainContract}}
+        <h4>
+            {{i18n "wallet.send.monitorAddr"}} 
+        </h4>
+        <input required pattern="^([0-9]{1,3}\.){3}[0-9]{1,3}$" class="monitorAddrInput" value="{{monitorAddr}}">
+        <br>
+        <h4>
+            {{i18n "wallet.send.monitorPort"}} 
+        </h4>
+        <input required pattern="^[0-9]{1,5}$" class="monitorPortInput" value="{{monitorPort}}">
+        <br>
+        <h4>
+            {{i18n "wallet.send.nonce"}} 
+        </h4>
+        <input type="number" min="0" class="nonceInput" value="{{nonce}}" disabled>
+        <br>
+    {{/if}}
     <button class="dapp-block-button execute">
         {{#if TemplateVar.get "sending"}} 
             {{i18n 'buttons.sending'}}

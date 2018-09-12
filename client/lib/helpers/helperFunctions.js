@@ -44,7 +44,7 @@ Helpers.getDefaultContractExample = function(withoutPragma) {
         }
         return 'pragma solidity ^' + solcVersion + ';\n\n' + source;
     }
-}
+};
 
 /**
 Reruns functions reactively, based on an interval. Use it like so:
@@ -210,7 +210,10 @@ Helpers.getAccountByAddress = function(address, reactive) {
     var options = (reactive === false) ? {reactive: false} : {};
     if(_.isString(address))
         address = address.toLowerCase();
-    return McAccounts.findOne({address: address}, options) || Wallets.findOne({address: address}, options) || CustomContracts.findOne({address: address}, options);
+    return  McAccounts.findOne({address: address}, options) 
+            || Wallets.findOne({address: address}, options) 
+            || CustomContracts.findOne({address: address}, options)
+            || MicroChainContracts.findOne({address: address}, options);
 };
 
 /**

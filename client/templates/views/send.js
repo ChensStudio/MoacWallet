@@ -674,6 +674,7 @@ Template['views_send'].events({
                 // SIMPLE TX
                 } else {
                     var tranData;
+                    var isMicroChain = false;
                     if(microChainDapp){
                         tranData={from: selectedAccount.address,
                         to: to,
@@ -683,6 +684,8 @@ Template['views_send'].events({
                         shardingFlag: 1,
                         nonce: 0,
                         via: selectedAccount.address};
+
+                        isMicroChain = true;
                     }
                     else{
                         tranData={from: selectedAccount.address,
@@ -703,8 +706,29 @@ Template['views_send'].events({
                             data = (!to && contract)
                                 ? {contract: contract, data: data}
                                 : data;
+                            if(isMicroChain===false){
+                                addTransactionAfterSend(txHash, amount, selectedAccount.address, to, gasPrice, estimatedGas, data, isMicroChain);
+                            }
+                            else{
+                                var contractName = contract.name.replace(/([A-Z])/g, ' $1');
+                                var jsonInterface = contract.jsonInterface;
 
-                            addTransactionAfterSend(txHash, amount, selectedAccount.address, to, gasPrice, estimatedGas, data);
+                                MicroChainContracts.upsert({address: to}, {$set: {
+                                    address: to,
+                                    name: ( contractName || 'New Contract') + ' ' + to.substr(2, 4),
+                                    jsonInterface: jsonInterface
+                                }});
+
+                                // // add from Account
+                                // McAccounts.update({address: from}, {$addToSet: {
+                                //     transactions: txId
+                                // }});
+
+                                // // add to Account
+                                // McAccounts.update({address: to}, {$addToSet: {
+                                //     transactions: txId
+                                // }});
+                            }
 
                             localStorage.setItem('contractSource', Helpers.getDefaultContractExample());
                             localStorage.setItem('compiledContracts', null);

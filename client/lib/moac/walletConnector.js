@@ -93,11 +93,15 @@ connectToNode = function(){
 
     observeEvents();
 
+    observeMicroChainEvents();
+
     observeTokens();
 
     observePendingConfirmations();
 
     observeCustomContracts();
+
+    observeMicroChainContracts();
 
     console.timeEnd('startNode')
 };

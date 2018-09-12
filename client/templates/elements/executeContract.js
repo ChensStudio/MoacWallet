@@ -1,7 +1,30 @@
 import {Template} from 'meteor/templating';
 import './accountLink.js';
 import '../../lib/helpers/helperFunctions.js';
+import '../../lib/helpers/scsapi.js';
 import './executeContract.html';
+
+function checkMicroChainContract(){
+    var isMicroChainContract = FlowRouter.getParam('isMicroChainContract');
+    return (isMicroChainContract == 'true');
+};
+
+function getCurrentNonce(contractAddress, template){
+    var monitorAddr = TemplateVar.get('monitorAddr');
+    var monitorPort = TemplateVar.get('monitorPort');
+    var nonce = -1;
+
+    if (monitorAddr !== "" && monitorAddr !== undefined && monitorPort !== "" && monitorPort !== undefined){
+        var sender = Helpers.getAccountByAddress(TemplateVar.getFrom('.execute-contract select[name="dapp-select-account"]', 'value'));
+        
+        scsApi.getNonce(monitorAddr, monitorPort, sender.address, contractAddress, (error, result) => {
+            if(!error){
+                nonce = JSON.parse(result.content).result;
+                TemplateVar.set(template, 'nonce', nonce);
+            }
+        });
+    }
+};
 
 /**
 Template Controllers
@@ -23,7 +46,7 @@ Template['elements_executeContract'].onCreated(function(){
     TemplateVar.set('sending', false);
 
     // show execute part if its a custom contract
-    if(CustomContracts.findOne({address: template.data.address}))
+    if(CustomContracts.findOne({address: template.data.address})||MicroChainContracts.findOne({address: template.data.address}))
         TemplateVar.set('executionVisible', true);
 
     // check address for code
@@ -42,6 +65,11 @@ Template['elements_executeContract'].helpers({
     @method (reactiveContext)
     */
     'reactiveContext': function() {
+        if(checkMicroChainContract()){
+            var contract = MicroChainContracts.findOne({address: this.address}, {});
+            this.jsonInterface = contract.jsonInterface;
+        }
+
         var contractInstance = chain3.mc.contract(this.jsonInterface).at(this.address);
 
         var contractFunctions = [];
@@ -68,7 +96,15 @@ Template['elements_executeContract'].helpers({
 
         TemplateVar.set('contractConstants', contractConstants);
         TemplateVar.set('contractFunctions', contractFunctions);
-    }
+    },
+    /**
+    Get the isMicroChainContract for select contract
+
+    @method (isMicroChainContract)
+    */
+   'isMicroChainContract': function(){
+        return checkMicroChainContract();
+}
 });
 
 Template['elements_executeContract'].events({
@@ -213,9 +249,6 @@ Template['elements_executeContract_constant'].events({
     }
 });
 
-
-
-
 /**
 The contract function template
 
@@ -253,6 +286,26 @@ Template['elements_executeContract_function'].helpers({
    'estimatedGas': function(){
         var estimatedGas = TemplateVar.get('estimatedGas');
         return estimatedGas;
+    },
+    /**
+    Get the isMicroChainContract for select contract
+
+    @method (isMicroChainContract)
+    */
+   'isMicroChainContract': function(){
+        return checkMicroChainContract();
+    },
+    'monitorAddr': function(){
+         var monitorAddr = TemplateVar.get('monitorAddr');
+         return monitorAddr;
+    },
+    'monitorPort': function(){
+          var monitorPort = TemplateVar.get('monitorPort');
+          return monitorPort;
+    },
+    'nonce': function(){
+          var nonce = TemplateVar.get('nonce');
+          return nonce;
     }
 });
 
@@ -283,6 +336,32 @@ Template['elements_executeContract_function'].events({
         */
     'change .estimtedGasInput': function(e, template) {
         TemplateVar.set('estimatedGas', e.currentTarget.valueAsNumber);
+    },
+    /**
+        React on user input on nonce
+
+        @event change .nonceInput
+        */
+    //    'change .nonceInput': function(e, template) {
+    //     TemplateVar.set('nonce', e.currentTarget.valueAsNumber);
+    // },
+    /**
+    React on user input on Monitor RPC Address
+
+    @event change .monitorAddrInput
+    */
+   'change .monitorAddrInput': function(e, template) {
+        TemplateVar.set('monitorAddr', e.currentTarget.value);
+        getCurrentNonce(this.contractInstance.address, template);
+    },
+    /**
+    React on user input on Monitor RPC Port
+
+    @event change .monitorAddrInput
+    */
+    'change .monitorPortInput': function(e, template) {
+        TemplateVar.set('monitorPort', e.currentTarget.value);
+        getCurrentNonce(this.contractInstance.address,template);
     },
     /**
     Executes a transaction on contract
@@ -357,15 +436,35 @@ Template['elements_executeContract_function'].events({
                 
                 // SIMPLE TX
                 } else {
+                    var tranData;
+                    if(checkMicroChainContract()){
+                        var nonce = TemplateVar.get('nonce');
+                        tranData={
+                            from: selectedAccount.address,
+                            to: to,
+                            data: data,
+                            value: amount,
+                            gasPrice: gasPrice,
+                            gas: estimatedGas,
+                            shardingFlag: 1,
+                            nonce: nonce,
+                            via: selectedAccount.address
+                        };
 
-                    chain3.mc.sendTransaction({
-                        from: selectedAccount.address,
-                        to: to,
-                        data: data,
-                        value: amount,
-                        gasPrice: gasPrice,
-                        gas: estimatedGas
-                    }, function(error, txHash){
+                        isMicroChain = true;
+                    }
+                    else{
+                        tranData={
+                            from: selectedAccount.address,
+                            to: to,
+                            data: data,
+                            value: amount,
+                            gasPrice: gasPrice,
+                            gas: estimatedGas
+                        };
+                    }
+
+                    chain3.mc.sendTransaction(tranData, function(error, txHash){
 
                         TemplateVar.set(template, 'sending', false);
 
