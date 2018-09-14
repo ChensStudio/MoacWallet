@@ -20,8 +20,12 @@ function getCurrentNonce(contractAddress, template){
         scsApi.getNonce(monitorAddr, monitorPort, sender.address, contractAddress, (error, result) => {
             if(!error){
                 nonce = JSON.parse(result.content).result;
-                TemplateVar.set(template, 'nonce', nonce);
+                if (typeof nonce === 'undefined'){
+                    nonce = -1;
+                }
             }
+            
+            TemplateVar.set(template, 'nonce', nonce);
         });
     }
 };
@@ -296,12 +300,24 @@ Template['elements_executeContract_function'].helpers({
         return checkMicroChainContract();
     },
     'monitorAddr': function(){
-         var monitorAddr = TemplateVar.get('monitorAddr');
-         return monitorAddr;
+        var monitorAddr = TemplateVar.get('monitorAddr');
+        if (typeof monitorAddr === 'undefined'){
+            monitorAddr = '127.0.0.1';
+            TemplateVar.set('monitorAddr', monitorAddr);
+        }
+        
+        getCurrentNonce(this.contractInstance.address, Template.instance());
+        return monitorAddr;
     },
-    'monitorPort': function(){
-          var monitorPort = TemplateVar.get('monitorPort');
-          return monitorPort;
+    'monitorPort': function(template){
+        var monitorPort = TemplateVar.get('monitorPort');
+        if (typeof monitorPort === 'undefined'){
+            monitorPort = '50068';
+            TemplateVar.set('monitorPort', monitorPort);
+        }
+
+        getCurrentNonce(this.contractInstance.address, Template.instance());
+        return monitorPort;
     },
     'nonce': function(){
           var nonce = TemplateVar.get('nonce');
@@ -350,7 +366,7 @@ Template['elements_executeContract_function'].events({
 
     @event change .monitorAddrInput
     */
-   'change .monitorAddrInput': function(e, template) {
+   'keyup .monitorAddrInput, change .monitorAddrInput, input .monitorAddrInput': function(e, template) {
         TemplateVar.set('monitorAddr', e.currentTarget.value);
         getCurrentNonce(this.contractInstance.address, template);
     },
@@ -359,7 +375,7 @@ Template['elements_executeContract_function'].events({
 
     @event change .monitorAddrInput
     */
-    'change .monitorPortInput': function(e, template) {
+    'keyup .monitorPortInput, change .monitorPortInput, input .monitorPortInput': function(e, template) {
         TemplateVar.set('monitorPort', e.currentTarget.value);
         getCurrentNonce(this.contractInstance.address,template);
     },
@@ -439,6 +455,16 @@ Template['elements_executeContract_function'].events({
                     var tranData;
                     if(checkMicroChainContract()){
                         var nonce = TemplateVar.get('nonce');
+                        if(typeof nonce === 'undefined' || nonce === -1){
+                            TemplateVar.set(template, 'sending', false);
+
+                            GlobalNotification.error({
+                                content: "i18n:wallet.send.error.nonceError",
+                                duration: 4
+                            });
+
+                            return;
+                        }
                         tranData={
                             from: selectedAccount.address,
                             to: to,
@@ -468,10 +494,7 @@ Template['elements_executeContract_function'].events({
 
                         TemplateVar.set(template, 'sending', false);
 
-                        console.log(error, txHash);
                         if(!error) {
-                            console.log('SEND simple');
-
                             addTransactionAfterSend(txHash, amount, selectedAccount.address, to, gasPrice, estimatedGas, data);
 
                             // FlowRouter.go('dashboard');
