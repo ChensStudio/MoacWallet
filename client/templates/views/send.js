@@ -680,7 +680,7 @@ Template['views_send'].events({
                         to: to,
                         data: data,
                         value: amount,
-                        gas: 200000,
+                        gas: 0,
                         shardingFlag: 1,
                         nonce: 0,
                         via: selectedAccount.address};
