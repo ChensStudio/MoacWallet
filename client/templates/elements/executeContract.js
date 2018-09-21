@@ -470,8 +470,7 @@ Template['elements_executeContract_function'].events({
                             to: to,
                             data: data,
                             value: amount,
-                            gasPrice: gasPrice,
-                            gas: estimatedGas,
+                            gas: 0,
                             shardingFlag: 1,
                             nonce: nonce,
                             via: selectedAccount.address
@@ -495,7 +494,9 @@ Template['elements_executeContract_function'].events({
                         TemplateVar.set(template, 'sending', false);
 
                         if(!error) {
-                            addTransactionAfterSend(txHash, amount, selectedAccount.address, to, gasPrice, estimatedGas, data);
+                            if(!checkMicroChainContract){
+                                addTransactionAfterSend(txHash, amount, selectedAccount.address, to, gasPrice, estimatedGas, data);
+                            }
 
                             // FlowRouter.go('dashboard');
                             GlobalNotification.success({
