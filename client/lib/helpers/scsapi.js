@@ -71,3 +71,14 @@ scsApi.setDappAbi = function(rpcaddr, rpcport, sender, subChainAddr, abi, callba
     var bodyJSON = { "jsonrpc": "2.0", "id": 0, "method": "ScsRPCMethod.SetDappAbi", "params": {"Sender": sender, "Data": abi, "SubChainAddr": subChainAddr}};
     return scsApi.request(bodyJSON, rpcaddr, rpcport, sender, subChainAddr, callback);
 };
+
+scsApi.getDappState = function(rpcaddr, rpcport, sender, subChainAddr, callback) {
+    if (!subChainAddr) {
+        subChainAddr = scsApi.contractAddress;
+    }
+    if (!sender) {
+        sender = scsApi.sender;
+    }
+    var bodyJSON = { "jsonrpc": "2.0", "id": 0, "method": "ScsRPCMethod.GetDappState", "params": {"Sender": sender, "SubChainAddr": subChainAddr}};
+    return scsApi.request(bodyJSON, rpcaddr, rpcport, sender, subChainAddr, callback);
+};

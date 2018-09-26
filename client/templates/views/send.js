@@ -1,5 +1,6 @@
 import {Template} from 'meteor/templating';
 import '../../lib/helpers/helperFunctions.js'
+import '../../lib/helpers/scsapi.js';
 import '../../lib/collections.js';
 import '../../lib/moac/walletConnector.js';
 import './modals/sendTransactionInfo.js';
@@ -537,6 +538,22 @@ Template['views_send'].events({
         }
     },
     /**
+    React on user input on Monitor RPC Address
+
+    @event change .monitorAddrInput
+    */
+   'keyup .monitorAddrInput, change .monitorAddrInput, input .monitorAddrInput': function(e, template) {
+        TemplateVar.set('monitorAddr', e.currentTarget.value);
+    },
+    /**
+    React on user input on Monitor RPC Port
+
+    @event change .monitorAddrInput
+    */
+    'keyup .monitorPortInput, change .monitorPortInput, input .monitorPortInput': function(e, template) {
+        TemplateVar.set('monitorPort', e.currentTarget.value);
+    },
+    /**
     Submit the form and send the transaction!
 
     @event submit form
@@ -553,7 +570,9 @@ Template['views_send'].events({
             selectedAction = TemplateVar.get("selectedAction"),
             data = getDataField(),
             contract = TemplateVar.getFrom('.compile-contract', 'contract'),
-            sendAll = TemplateVar.get('sendAll');
+            sendAll = TemplateVar.get('sendAll'),
+            monitorAddr = TemplateVar.get('monitorAddr'),
+            monitorPort = TemplateVar.get('monitorPort');
 
 
         if(selectedAccount && !TemplateVar.get('sending')) {
@@ -713,10 +732,18 @@ Template['views_send'].events({
                                 var contractName = contract.name.replace(/([A-Z])/g, ' $1');
                                 var jsonInterface = contract.jsonInterface;
 
+                                scsApi.setDappAbi(monitorAddr, monitorPort, selectedAccount.address, to, jsonInterface, (error, result) => {
+                                    if(!error){
+                                        result = JSON.parse(result.content).result;
+                                    }
+                                });
+
                                 MicroChainContracts.upsert({address: to}, {$set: {
                                     address: to,
                                     name: ( contractName || 'New Contract') + ' ' + to.substr(2, 4),
-                                    jsonInterface: jsonInterface
+                                    jsonInterface: jsonInterface,
+                                    monitorAddr: monitorAddr,
+                                    monitorPort: monitorPort
                                 }});
 
                                 // // add from Account

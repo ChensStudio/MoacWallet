@@ -4,14 +4,16 @@ import '../../lib/helpers/helperFunctions.js';
 import '../../lib/helpers/scsapi.js';
 import './executeContract.html';
 
+var contract;
+
 function checkMicroChainContract(){
     var isMicroChainContract = FlowRouter.getParam('isMicroChainContract');
     return (isMicroChainContract == 'true');
 };
 
 function getCurrentNonce(contractAddress, template){
-    var monitorAddr = TemplateVar.get('monitorAddr');
-    var monitorPort = TemplateVar.get('monitorPort');
+    var monitorAddr = contract.monitorAddr;
+    var monitorPort = contract.monitorPort;
     var nonce = -1;
 
     if (monitorAddr !== "" && monitorAddr !== undefined && monitorPort !== "" && monitorPort !== undefined){
@@ -69,12 +71,19 @@ Template['elements_executeContract'].helpers({
     @method (reactiveContext)
     */
     'reactiveContext': function() {
-        if(checkMicroChainContract()){
-            var contract = MicroChainContracts.findOne({address: this.address}, {});
-            this.jsonInterface = contract.jsonInterface;
-        }
+        var addr = this.address;
 
-        var contractInstance = chain3.mc.contract(this.jsonInterface).at(this.address);
+        if(checkMicroChainContract()){
+            contract = MicroChainContracts.findOne({address: addr}, {});
+            this.jsonInterface = contract.jsonInterface;
+
+            //var contractInstance = scsApi;
+            var contractInstance = chain3.mc.contract(this.jsonInterface).at(addr);
+        }
+        else
+        {
+            var contractInstance = chain3.mc.contract(this.jsonInterface).at(addr);
+        }
 
         var contractFunctions = [];
         var contractConstants = [];
@@ -108,7 +117,23 @@ Template['elements_executeContract'].helpers({
     */
    'isMicroChainContract': function(){
         return checkMicroChainContract();
-}
+    },
+    /**
+    Get the monitorAddr
+
+    @method (monitorAddr)
+    */
+    'monitorAddr': function(){
+        return contract.monitorAddr;
+    },
+    /**
+    Get the monitorPort
+
+    @method (monitorPort)
+    */
+    'monitorPort': function(){
+        return contract.monitorPort;
+    }
 });
 
 Template['elements_executeContract'].events({
@@ -119,7 +144,6 @@ Template['elements_executeContract'].events({
     */
     'change .select-contract-function': function(e, template){
         TemplateVar.set('executeData', null);
-
 
         // change the inputs and data field
         TemplateVar.set('selectedFunction', _.find(TemplateVar.get('contractFunctions'), function(contract){
@@ -206,7 +230,30 @@ Template['elements_executeContract_constant'].onCreated(function(){
             } 
         });
 
-        template.data.contractInstance[template.data.name].apply(null, args);
+        if(checkMicroChainContract()){
+            scsApi.anyCall(contract.monitorAddr, contract.monitorPort, "0x0000000000000000000000000000000000000000", contract.address, template.data.name, (error, results) => {
+                if(!error){
+                    var outputs = [];
+
+                    results = JSON.parse(results.content).result;
+                    results = JSON.parse(results);
+                    if(results.length ===1){
+                        template.data.outputs[0].value = results[0];
+                        outputs.push(template.data.outputs[0]);
+                    }
+                    else{
+                        outputs = _.map(template.data.outputs, function(output, i) {
+                            output.value = results[i];
+                            return output;
+                        });
+                    }
+                    TemplateVar.set(template, 'outputs', outputs);
+                }
+            });
+        }
+        else {
+            template.data.contractInstance[template.data.name].apply(null, args);
+        }
 
     });
 });
@@ -312,7 +359,7 @@ Template['elements_executeContract_function'].helpers({
     'monitorPort': function(template){
         var monitorPort = TemplateVar.get('monitorPort');
         if (typeof monitorPort === 'undefined'){
-            monitorPort = '50068';
+            monitorPort = '8548';
             TemplateVar.set('monitorPort', monitorPort);
         }
 
@@ -344,6 +391,9 @@ Template['elements_executeContract_function'].events({
         var inputs = Helpers.addInputValue(template.data.inputs, this, e.currentTarget);
     
         TemplateVar.set('executeData', template.data.contractInstance[template.data.name].getData.apply(null, inputs));
+        if (checkMicroChainContract()){
+            getCurrentNonce(contract.address, template);
+        }
     },
     /**
         React on user input on gas
@@ -352,32 +402,6 @@ Template['elements_executeContract_function'].events({
         */
     'change .estimtedGasInput': function(e, template) {
         TemplateVar.set('estimatedGas', e.currentTarget.valueAsNumber);
-    },
-    /**
-        React on user input on nonce
-
-        @event change .nonceInput
-        */
-    //    'change .nonceInput': function(e, template) {
-    //     TemplateVar.set('nonce', e.currentTarget.valueAsNumber);
-    // },
-    /**
-    React on user input on Monitor RPC Address
-
-    @event change .monitorAddrInput
-    */
-   'keyup .monitorAddrInput, change .monitorAddrInput, input .monitorAddrInput': function(e, template) {
-        TemplateVar.set('monitorAddr', e.currentTarget.value);
-        getCurrentNonce(this.contractInstance.address, template);
-    },
-    /**
-    React on user input on Monitor RPC Port
-
-    @event change .monitorAddrInput
-    */
-    'keyup .monitorPortInput, change .monitorPortInput, input .monitorPortInput': function(e, template) {
-        TemplateVar.set('monitorPort', e.currentTarget.value);
-        getCurrentNonce(this.contractInstance.address,template);
     },
     /**
     Executes a transaction on contract
@@ -504,13 +528,14 @@ Template['elements_executeContract_function'].events({
                                duration: 2
                             });
                         } else {
-
                             // McElements.Modal.hide();
 
                             GlobalNotification.error({
                                 content: error.message,
                                 duration: 8
                             });
+
+                            getCurrentNonce(contract.address, template);
                         }
                     });
                 }   
