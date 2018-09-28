@@ -333,9 +333,17 @@ Template['views_account'].events({
             McAccounts.update(this._id, {$set: {
                 name: text
             }});
-            CustomContracts.update(this._id, {$set: {
-                name: text
-            }});
+            var isMicroChainContract = FlowRouter.getParam('isMicroChainContract');
+            if(isMicroChainContract==='true'){
+                MicroChainContracts.update(this._id, {$set: {
+                    name: text
+                }});                
+            }
+            else{
+                CustomContracts.update(this._id, {$set: {
+                    name: text
+                }});
+            }
 
             // make it non-editable
             $el.attr('contenteditable', null);

@@ -25,6 +25,12 @@ function getCurrentNonce(contractAddress, template){
                 if (typeof nonce === 'undefined'){
                     nonce = -1;
                 }
+                else{
+                    MicroChainContracts.upsert({address: contractAddress}, {$set: {
+                        monitorAddr: monitorAddr,
+                        monitorPort: monitorPort
+                    }});
+                }
             }
             
             TemplateVar.set(template, 'nonce', nonce);
@@ -138,9 +144,9 @@ Template['elements_executeContract'].helpers({
 
 Template['elements_executeContract'].events({
     /**
-    Select a contract function
+        Select a contract function
     
-    @event 'change .select-contract-function
+        @event 'change .select-contract-function
     */
     'change .select-contract-function': function(e, template){
         TemplateVar.set('executeData', null);
@@ -155,12 +161,27 @@ Template['elements_executeContract'].events({
         });
     },
     /**
-    Click the show hide button
-
-    @event click .toggle-visibility
+        Click the show hide button
+        @event click .toggle-visibility
     */
     'click .toggle-visibility': function(){
         TemplateVar.set('executionVisible', !TemplateVar.get('executionVisible'));
+    },
+    /**
+        React on user input on Monitor RPC Address
+        @event change .monitorAddrInput
+    */
+   'keyup .monitorAddrInput, change .monitorAddrInput, input .monitorAddrInput': function(e, template) {
+        TemplateVar.set('monitorAddr', e.currentTarget.value);
+        getCurrentNonce(this.contractInstance.address, template);
+    },
+    /**
+        React on user input on Monitor RPC Port
+        @event change .monitorAddrInput
+    */
+    'keyup .monitorPortInput, change .monitorPortInput, input .monitorPortInput': function(e, template) {
+        TemplateVar.set('monitorPort', e.currentTarget.value);
+        getCurrentNonce(this.contractInstance.address,template);
     }
 });
 
@@ -345,26 +366,6 @@ Template['elements_executeContract_function'].helpers({
     */
    'isMicroChainContract': function(){
         return checkMicroChainContract();
-    },
-    'monitorAddr': function(){
-        var monitorAddr = TemplateVar.get('monitorAddr');
-        if (typeof monitorAddr === 'undefined'){
-            monitorAddr = '127.0.0.1';
-            TemplateVar.set('monitorAddr', monitorAddr);
-        }
-        
-        getCurrentNonce(this.contractInstance.address, Template.instance());
-        return monitorAddr;
-    },
-    'monitorPort': function(template){
-        var monitorPort = TemplateVar.get('monitorPort');
-        if (typeof monitorPort === 'undefined'){
-            monitorPort = '8548';
-            TemplateVar.set('monitorPort', monitorPort);
-        }
-
-        getCurrentNonce(this.contractInstance.address, Template.instance());
-        return monitorPort;
     },
     'nonce': function(){
           var nonce = TemplateVar.get('nonce');

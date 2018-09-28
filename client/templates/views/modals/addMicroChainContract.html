@@ -3,7 +3,16 @@
     
     <h3>{{i18n "wallet.contracts.address"}}</h3>
     {{> dapp_addressInput placeholder="0x000000.." value=this.address name="address" class='contract-address'}}
-
+    <h3>{{i18n 'wallet.send.from'}}</h3>
+    {{> dapp_selectAccount accounts=(selectAccounts deployContract) showAccountTypes=true name="from" class='send-from'}}
+    <h3>
+        {{i18n "wallet.send.monitorAddr"}} 
+    </h3>
+    <input required pattern="^([0-9]{1,3}\.){3}[0-9]{1,3}$" name="monitorAddrInput" class="monitorAddrInput" value="{{monitorAddr}}">
+    <h3>
+        {{i18n "wallet.send.monitorPort"}} 
+    </h3>
+    <input required pattern="^[0-9]{1,5}$" name="monitorPortInput" class="monitorPortInput" value="{{monitorPort}}">
     <h3>{{i18n "wallet.contracts.name"}}</h3>
     <input type="string" value="" name="name" placeholder="Name this contract" class="name">
 

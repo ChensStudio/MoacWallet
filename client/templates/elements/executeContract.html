@@ -23,16 +23,18 @@
 
                 <div class="row clear">
                     <div class="col col-8 mobile-full contract-info">
-                        <h4>
-                            {{i18n "wallet.send.monitorAddr"}} 
-                        </h4>
-                        <input required pattern="^([0-9]{1,3}\.){3}[0-9]{1,3}$" class="monitorAddrInput" value="{{monitorAddr}}">
-                        <br>
-                        <h4>
-                            {{i18n "wallet.send.monitorPort"}} 
-                        </h4>
-                        <input required pattern="^[0-9]{1,5}$" class="monitorPortInput" value="{{monitorPort}}">
-                        <br>
+                        {{#if isMicroChainContract}}
+                            <h4>
+                                {{i18n "wallet.send.monitorAddr"}} 
+                            </h4>
+                            <input required pattern="^([0-9]{1,3}\.){3}[0-9]{1,3}$" class="monitorAddrInput" value="{{monitorAddr}}">
+                            <br>
+                            <h4>
+                                {{i18n "wallet.send.monitorPort"}} 
+                            </h4>
+                            <input required pattern="^[0-9]{1,5}$" class="monitorPortInput" value="{{monitorPort}}">
+                            <br>
+                        {{/if}}
                         <h2>{{i18n "wallet.contracts.readFromContract"}}</h2>
                         <table class="contract-constants dapp-zebra">
                             <tbody>

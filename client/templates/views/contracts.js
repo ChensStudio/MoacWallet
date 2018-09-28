@@ -128,18 +128,22 @@ Function to add a new MicroChain contract
 
 @method addMicroChainContract
 */
-var addMicroChainContract = function(e) {
+var addMicroChainContract = function() {
 
     var address = $('.modals-add-microchain-contract input[name="address"]').hasClass('dapp-error')
             ? ''
             : $('.modals-add-microchain-contract input[name="address"]').val(),
         name = $('.modals-add-microchain-contract input.name').val() || TAPi18n.__('wallet.accounts.defaultName');
 
+    var monitorAddr = $('.modals-add-microchain-contract input.monitorAddrInput').val(),
+        monitorPort = $('.modals-add-microchain-contract input.monitorPortInput').val(),
+        selectedAccountAddr = $('.modals-add-microchain-contract [name="from"]').val();
+
     address = address.toLowerCase();
 
 
     try {
-        jsonInterface = JSON.parse($('.modals-add-microchain-contract textarea.jsonInterface').val());
+        jsonInterface = $('.modals-add-microchain-contract textarea.jsonInterface').val();
     } catch(e) {
         GlobalNotification.warning({
            content: TAPi18n.__('wallet.contracts.error.jsonInterfaceParseError'),
@@ -151,20 +155,40 @@ var addMicroChainContract = function(e) {
 
     if(chain3.isAddress(address)) {
         // chech if contract already exists as wallet contract
-        if(Wallets.findOne({address: address})) {
-            GlobalNotification.warning({
-            content: TAPi18n.__('wallet.newWallet.error.alreadyExists'),
-            duration: 2
-            });
+        // if(Wallets.findOne({address: address})) {
+        //     GlobalNotification.warning({
+        //     content: TAPi18n.__('wallet.newWallet.error.alreadyExists'),
+        //     duration: 2
+        //     });
 
-            return false;
-        }
+        //     return false;
+        // }
+
+        scsApi.setDappAbi(monitorAddr, monitorPort, selectedAccountAddr, address, jsonInterface, (error, result) => {
+            if(!error){
+                result = JSON.parse(result.content).result;
+                if(result!=="success"){
+                    GlobalNotification.error({
+                        content: "Set ABI error",
+                        duration: 4
+                    });
+                }
+            }
+            else{
+                GlobalNotification.error({
+                    content: translateExternalErrorMessage(error.message),
+                    duration: 4
+                });
+            }
+        });
 
         MicroChainContracts.upsert({address: address}, {$set: {
             address: address,
             name: name,
-            jsonInterface: jsonInterface
-        }});
+            jsonInterface: JSON.parse(jsonInterface),
+            monitorAddr: monitorAddr,
+            monitorPort: monitorPort
+        }}, {upsert: true});
 
         // update balances from lib/moac/observeBlocks.js
         updateBalances();

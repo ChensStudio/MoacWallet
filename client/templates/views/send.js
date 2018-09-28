@@ -718,10 +718,7 @@ Template['views_send'].events({
 
                         TemplateVar.set(template, 'sending', false);
 
-                        console.log(error, txHash);
                         if(!error) {
-                            console.log('SEND simple');
-
                             data = (!to && contract)
                                 ? {contract: contract, data: data}
                                 : data;
@@ -730,13 +727,35 @@ Template['views_send'].events({
                             }
                             else{
                                 var contractName = contract.name.replace(/([A-Z])/g, ' $1');
-                                var jsonInterface = contract.jsonInterface;
+                                var jsonInterface = contract.jsonInterface
+                                var jsonInterfaceString = JSON.stringify(contract.jsonInterface);
+                                var res;
 
-                                scsApi.setDappAbi(monitorAddr, monitorPort, selectedAccount.address, to, jsonInterface, (error, result) => {
-                                    if(!error){
-                                        result = JSON.parse(result.content).result;
-                                    }
-                                });
+                                Meteor.setTimeout(
+                                    function(){
+                                        scsApi.setDappAbi(monitorAddr, monitorPort, selectedAccount.address, to, jsonInterfaceString, (error, result) => {
+                                        if(!error){
+                                            res = JSON.parse(result.content).result;
+                                            if(res.toLowerCase()==="success"){
+                                                GlobalNotification.success({ 
+                                                    content: "Abi setting: " + res,
+                                                    duration: 8
+                                                });
+                                            }
+                                            else{
+                                                GlobalNotification.error({ 
+                                                    content: "Abi setting" + res,
+                                                    duration: 8
+                                                });
+                                            }
+                                        }
+                                        else{
+                                            GlobalNotification.error({
+                                                content: "Abi setting: fail",
+                                                duration: 8
+                                            });
+                                        }
+                                    })}, 10000);
 
                                 MicroChainContracts.upsert({address: to}, {$set: {
                                     address: to,
@@ -744,17 +763,7 @@ Template['views_send'].events({
                                     jsonInterface: jsonInterface,
                                     monitorAddr: monitorAddr,
                                     monitorPort: monitorPort
-                                }});
-
-                                // // add from Account
-                                // McAccounts.update({address: from}, {$addToSet: {
-                                //     transactions: txId
-                                // }});
-
-                                // // add to Account
-                                // McAccounts.update({address: to}, {$addToSet: {
-                                //     transactions: txId
-                                // }});
+                                }}, {upsert: true});
                             }
 
                             localStorage.setItem('contractSource', Helpers.getDefaultContractExample());

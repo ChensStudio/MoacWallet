@@ -82,3 +82,14 @@ scsApi.getDappState = function(rpcaddr, rpcport, sender, subChainAddr, callback)
     var bodyJSON = { "jsonrpc": "2.0", "id": 0, "method": "ScsRPCMethod.GetDappState", "params": {"Sender": sender, "SubChainAddr": subChainAddr}};
     return scsApi.request(bodyJSON, rpcaddr, rpcport, sender, subChainAddr, callback);
 };
+
+scsApi.GetStorageAt = function(rpcaddr, rpcport, subChainAddr, keyName, callback) {
+    if (!subChainAddr) {
+        subChainAddr = scsApi.contractAddress;
+    }
+    if (!sender) {
+        sender = scsApi.sender;
+    }
+    var bodyJSON = { "jsonrpc": "2.0", "id": 0, "method": "ScsRPCMethod.GetDappState", "params": {"SubChainAddr": subChainAddr, "Keys": [keyName]}};
+    return scsApi.request(bodyJSON, rpcaddr, rpcport, sender, subChainAddr, callback);
+};
