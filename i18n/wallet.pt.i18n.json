@@ -311,7 +311,7 @@
             "writeToContract": "Alterar no contrato",
             "pickContract": "Escolha um contrato",
             "pickFunction": "Escolha uma função",
-            "noContract": "<p>Escreva aqui o código do contrato desejado. Você pode encontrar exemplos de diversos contratos em <a href=\"http://ethereum.org\" target=\"_blank\">ethereum.org</a>: </p> <ul><li><a href=\"http://ethereum.org/token#the-code\" target=\"_blank\">Emitir uma moeda</a></li><li><a href=\"http://ethereum.org/crowdsale#the-code\" target=\"_blank\">Começe um financiamento coletivo</a></li><li><a href=\"http://ethereum.org/dao#the-code\" target=\"_blank\">Crie sua empresa no blockchain</a></li></ul>",
+            "noContract": "<p>Escreva aqui o código do contrato desejado.</ul>",
             "buttons": {
                 "showContractInfo": "Mostrar informação do contrato",
                 "hideContractInfo": "Esconder informação do contrato",

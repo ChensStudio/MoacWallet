@@ -315,7 +315,7 @@
             "writeToContract": "Escriure al contracte",
             "pickContract": "Selecciona un contracte",
             "pickFunction": "Selecciona una funció",
-            "noContract": "<p>Posa la font del contracte que vulguis aquí. Pots trobar molts exemples de contracte a <a href=\"http://ethereum.org\" target=\"_blank\">ethereum.org</a>: </p> <ul><li><a href=\"http://ethereum.org/token#the-code\" target=\"_blank\">Crear un token</a></li><li><a href=\"http://ethereum.org/crowdsale#the-code\" target=\"_blank\">Començar una crowdsale</a></li><li><a href=\"http://ethereum.org/dao#the-code\" target=\"_blank\">Crear una organització a la blockchain</a></li></ul>",
+            "noContract": "<p>Posa la font del contracte que vulguis aquí.</ul>",
             "buttons": {
                 "showContractInfo": "Mostrar informació del contracte",
                 "hideContractInfo": "Ocultar informació del contracte",

@@ -183,7 +183,8 @@ Template['elements_compileContract'].onRendered(function() {
 
                 if (typeof compiledContracts !== 'undefined')
                 {
-                    if(typeof compiledContracts['errors'] === 'undefined' || compiledContracts['errors'].toString().indexOf("Error")===-1)
+                    // || compiledContracts['errors'].toString().indexOf("Error")===-1
+                    if(typeof compiledContracts['errors'] === 'undefined')  
                     {
                         compiledContracts = _.map(compiledContracts.contracts.sol, function(contract, name){
                             var jsonInterface = contract.abi;
@@ -217,13 +218,17 @@ Template['elements_compileContract'].onRendered(function() {
                     }
                     else{
                         // Converts error into multiple bits
-                        var errorLine = compiledContracts['errors'].filter(function(elem){
-                            return elem.indexOf("Error")!==-1
-                        }).toString().split(':');
+                        var errorLineObject = compiledContracts['errors'].filter(function(elem){
+                            return elem.severity.indexOf("error")!==-1
+                        });
+
+                        var errorLine = errorLineObject.map(function(item){
+                            return item.formattedMessage.toString();
+                        });
         
                         if (errorLine.length < 4) {
                             // If it can't break the error then return all
-                            TemplateVar.set(template, 'compileError', error);
+                            TemplateVar.set(template, 'compileError', errorLine);
                         } else {
                             // Finds a ^____^ pattern
                             var foundPattern = errorLine[4].match(/(\^-*\^)/g);

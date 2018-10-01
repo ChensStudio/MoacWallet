@@ -303,7 +303,7 @@
             "writeToContract": "Ecrire au contrat",
             "pickContract": "Choisir un contrat",
             "pickFunction": "Choisir une fonction",
-            "noContract": "<p>Placez la source du contrat désiré ici. Vous trouverez de nombreux exemples de contrats sur <a href=\"http://Moac.org\" target=\"_blank\">Moac.org</a> : </p> <ul><li><a href=\"http://Moac.org/token#the-code\" target=\"_blank\">Créer un jeton</a></li><li><a href=\"http://Moac.org/crowdsale#the-code\" target=\"_blank\">Démarrer une crowdsale</a></li><li><a href=\"http://Moac.org/dao#the-code\" target=\"_blank\">Créer une organisation sur la blockchain</a></li></ul>",
+            "noContract": "<p>Placez la source du contrat désiré ici.</ul>",
             "buttons": {
                 "showContractInfo": "Afficher les infos du contrat",
                 "hideContractInfo": "Masquer les infos du contrat",

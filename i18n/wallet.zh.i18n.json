@@ -308,7 +308,7 @@
             "writeToContract": "写入合约",
             "pickContract": "选择合约",
             "pickFunction": "选择函数",
-            "noContract": "<p>在这里填入合约源码。您可以在下列连接中找到合约的范例 <a href=\"http://ethereum.org\" target=\"_blank\">ethereum.org</a>： </p> <ul><li><a href=\"http://ethereum.org/token#the-code\" target=\"_blank\">建立 代币</a></li><li><a href=\"http://ethereum.org/crowdsale#the-code\" target=\"_blank\">启动众筹</a></li><li><a href=\"http://ethereum.org/dao#the-code\" target=\"_blank\">创建区块链组织</a></li></ul>",
+            "noContract": "<p>在这里填入合约源码。</ul>",
             "buttons": {
                 "showContractInfo": "显示合约信息",
                 "hideContractInfo": "隐藏合约信息",

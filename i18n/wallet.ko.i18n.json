@@ -308,7 +308,7 @@
             "writeToContract": "컨트랙트에 쓰기",
             "pickContract": "컨트랙트 선택",
             "pickFunction": "함수 선택",
-            "noContract": "<p>여기에 원하는 컨트랙트의 소스를 입력하세요. <a href=\"http://ethereum.org\" target=\"_blank\">ethereum.org</a>에 여러가지 컨트랙트 예제가 있습니다.: </p> <ul><li><a href=\"http://ethereum.org/token#the-code\" target=\"_blank\">토큰 만들기</a></li><li><a href=\"http://ethereum.org/crowdsale#the-code\" target=\"_blank\">크라우드세일 시작하기</a></li><li><a href=\"http://ethereum.org/dao#the-code\" target=\"_blank\">블럭체인 조직 만들기</a></li></ul>",
+            "noContract": "<p>여기에 원하는 컨트랙트의 소스를 입력하세요.</ul>",
             "buttons": {
                 "showContractInfo": "컨트랙트 정보 보기",
                 "hideContractInfo": "컨트랙트 정보 감추기",

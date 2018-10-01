@@ -305,7 +305,7 @@
             "writeToContract": "寫至契約",
             "pickContract": "挑選一契約",
             "pickFunction": "挑選一函式",
-            "noContract": "<p>於此填入契約原始碼。您可於下列連結找到契約範例 <a href=\"http://ethereum.org\" target=\"_blank\">ethereum.org</a>： </p> <ul><li><a href=\"http://ethereum.org/token#the-code\" target=\"_blank\">建立 token</a></li><li><a href=\"http://ethereum.org/crowdsale#the-code\" target=\"_blank\">啟動眾籌</a></li><li><a href=\"http://ethereum.org/dao#the-code\" target=\"_blank\">創建區塊鏈組織</a></li></ul>",
+            "noContract": "<p>於此填入契約原始碼。</ul>",
             "buttons": {
                 "showContractInfo": "顯示契約資訊",
                 "hideContractInfo": "隱藏契約資訊",

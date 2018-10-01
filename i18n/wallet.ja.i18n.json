@@ -303,7 +303,7 @@
             "writeToContract": "コントラクトを書く",
             "pickContract": "コントラクトを選ぶ",
             "pickFunction": "ファンクションを選ぶ",
-            "noContract": "<p>欲しいコントラクトのソースをここに置いて下さい。 コントラクトのサンプルはこちらに沢山あります。 <a href=\"http://ethereum.org\" target=\"_blank\">ethereum.org</a>: </p> <ul><li><a href=\"http://ethereum.org/token#the-code\" target=\"_blank\">Build a token</a></li><li><a href=\"http://ethereum.org/crowdsale#the-code\" target=\"_blank\">Start a crowdsale</a></li><li><a href=\"http://ethereum.org/dao#the-code\" target=\"_blank\">Create a blockchain organization</a></li></ul>",
+            "noContract": "<p>欲しいコントラクトのソースをここに置いて下さい。</ul>",
             "buttons": {
                 "showContractInfo": "コントラクトの情報を表示",
                 "hideContractInfo": "コントラクトの情報を隠す",

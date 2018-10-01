@@ -296,7 +296,7 @@
             "writeToContract": "Писати в контракт",
             "pickContract": "Оберіть контракт",
             "pickFunction": "Оберіть функцію",
-            "noContract": "<p>Помістіть програмний код контракту сюди. Ви можете знайти багато прикладів контрактів на <a href=\"http://ethereum.org\" target=\"_blank\">ethereum.org</a>: </p> <ul><li><a href=\"http://ethereum.org/token#the-code\" target=\"_blank\">Створення купонів</a></li><li><a href=\"http://ethereum.org/crowdsale#the-code\" target=\"_blank\">Почати краудсейл</a></li><li><a href=\"http://ethereum.org/dao#the-code\" target=\"_blank\">Створити організацію на блокчейні</a></li></ul>",
+            "noContract": "<p>Помістіть програмний код контракту сюди.</ul>",
             "buttons": {
                 "showContractInfo": "Показати інформацію контракту",
                 "hideContractInfo": "Сховати інформацію контракту",

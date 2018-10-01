@@ -314,7 +314,7 @@
             "writeToContract": "Shkruaj te kontrata",
             "pickContract": "Zgjidh një kontratë",
             "pickFunction": "Zgjidh një funksion",
-            "noContract": "<p>Vendosni burimin e kontratës që doni këtu. Mund të gjeni shumë shembuj kontratash në <a href=\"http://ethereum.org\" target=\"_blank\">ethereum.org</a>: </p> <ul><li><a href=\"http://ethereum.org/token#the-code\" target=\"_blank\">Krijo një valutë</a></li><li><a href=\"http://ethereum.org/crowdsale#the-code\" target=\"_blank\">Nis një shitje në masë</a></li><li><a href=\"http://ethereum.org/dao#the-code\" target=\"_blank\">Krijo një organizatë në zinxhirin e blloqeve</a></li></ul>",
+            "noContract": "<p>Vendosni burimin e kontratës që doni këtu.</ul>",
             "buttons": {
                 "showContractInfo": "Shfaq informacion mbi kontratën",
                 "hideContractInfo": "Fshih informacionin mbi kontratën",
