@@ -183,8 +183,12 @@ Template['elements_compileContract'].onRendered(function() {
 
                 if (typeof compiledContracts !== 'undefined')
                 {
+                    var errorLineObject = compiledContracts['errors'].filter(function(elem){
+                        return elem.severity.indexOf("error")!==-1
+                    });
+
                     // || compiledContracts['errors'].toString().indexOf("Error")===-1
-                    if(typeof compiledContracts['errors'] === 'undefined')  
+                    if(typeof compiledContracts['errors'] === 'undefined' || errorLineObject.length === 0)  
                     {
                         compiledContracts = _.map(compiledContracts.contracts.sol, function(contract, name){
                             var jsonInterface = contract.abi;
@@ -218,9 +222,7 @@ Template['elements_compileContract'].onRendered(function() {
                     }
                     else{
                         // Converts error into multiple bits
-                        var errorLineObject = compiledContracts['errors'].filter(function(elem){
-                            return elem.severity.indexOf("error")!==-1
-                        });
+                        
 
                         var errorLine = errorLineObject.map(function(item){
                             return item.formattedMessage.toString();
