@@ -179,16 +179,18 @@ Template['elements_compileContract'].onRendered(function() {
 
                 var compiledContracts = solc.compileStandardWrapper(input, function () {});
                 compiledContracts = JSON.parse(compiledContracts);
-                //console.log(compiledContracts);
 
                 if (typeof compiledContracts !== 'undefined')
                 {
-                    var errorLineObject = compiledContracts['errors'].filter(function(elem){
-                        return elem.severity.indexOf("error")!==-1
-                    });
-
-                    // || compiledContracts['errors'].toString().indexOf("Error")===-1
-                    if(typeof compiledContracts['errors'] === 'undefined' || errorLineObject.length === 0)  
+                    var errorLineObject = [];
+                    if(typeof compiledContracts['errors'] !== 'undefined')
+                    {
+                        errorLineObject = compiledContracts['errors'].filter(function(elem){
+                            return elem.severity.indexOf("error")!==-1
+                        });
+                    }
+                    
+                    if(typeof compiledContracts['errors'] === 'undefined' || typeof compiledContracts['errors'] === 'undefined' || errorLineObject.length === 0)  
                     {
                         compiledContracts = _.map(compiledContracts.contracts.sol, function(contract, name){
                             var jsonInterface = contract.abi;

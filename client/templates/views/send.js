@@ -694,6 +694,8 @@ Template['views_send'].events({
                 } else {
                     var tranData;
                     var isMicroChain = false;
+                    var viaAddr = chain3.vnode.address;
+
                     if(microChainDapp){
                         tranData={from: selectedAccount.address,
                         to: to,
@@ -702,7 +704,8 @@ Template['views_send'].events({
                         gas: 0,
                         shardingFlag: 1,
                         nonce: 0,
-                        via: selectedAccount.address};
+                        via: viaAddr
+                    };
 
                         isMicroChain = true;
                     }

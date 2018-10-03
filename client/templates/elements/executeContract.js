@@ -5,6 +5,7 @@ import '../../lib/helpers/scsapi.js';
 import './executeContract.html';
 
 var contract;
+var templateExecuteContractfunction;    //to use nonce
 
 function checkMicroChainContract(){
     var isMicroChainContract = FlowRouter.getParam('isMicroChainContract');
@@ -16,7 +17,7 @@ function getCurrentNonce(contractAddress, template){
     var monitorPort = contract.monitorPort;
     var nonce = -1;
 
-    if (monitorAddr !== "" && monitorAddr !== undefined && monitorPort !== "" && monitorPort !== undefined){
+    if (monitorAddr !== "" && typeof monitorAddr !== undefined && monitorPort !== "" && typeof monitorPort !== undefined){
         var sender = Helpers.getAccountByAddress(TemplateVar.getFrom('.execute-contract select[name="dapp-select-account"]', 'value'));
         
         scsApi.getNonce(monitorAddr, monitorPort, sender.address, contractAddress, (error, result) => {
@@ -148,7 +149,7 @@ Template['elements_executeContract'].events({
     
         @event 'change .select-contract-function
     */
-    'change .select-contract-function': function(e, template){
+    'change .select-contract-function': function(e){
         TemplateVar.set('executeData', null);
 
         // change the inputs and data field
@@ -173,7 +174,7 @@ Template['elements_executeContract'].events({
     */
    'keyup .monitorAddrInput, change .monitorAddrInput, input .monitorAddrInput': function(e, template) {
         TemplateVar.set('monitorAddr', e.currentTarget.value);
-        getCurrentNonce(this.contractInstance.address, template);
+        getCurrentNonce(this.address, template);
     },
     /**
         React on user input on Monitor RPC Port
@@ -181,7 +182,7 @@ Template['elements_executeContract'].events({
     */
     'keyup .monitorPortInput, change .monitorPortInput, input .monitorPortInput': function(e, template) {
         TemplateVar.set('monitorPort', e.currentTarget.value);
-        getCurrentNonce(this.contractInstance.address,template);
+        getCurrentNonce(this.address,template);
     }
 });
 
@@ -331,7 +332,10 @@ The contract function template
 
 Template['elements_executeContract_function'].onCreated(function(){
     var template = this;
+    templateExecuteContractfunction = template;
+
     TemplateVar.set('estimatedGas', 350000);
+
     // change the amount when the currency unit is changed
     template.autorun(function(c){
         var unit = McTools.getUnit();
@@ -350,7 +354,13 @@ Template['elements_executeContract_function'].onRendered(function(){
 Template['elements_executeContract_function'].helpers({
     'reactiveDataContext': function(){
         if(this.inputs.length === 0)
+        {
             TemplateVar.set('executeData', this.contractInstance[this.name].getData());
+
+            if (checkMicroChainContract()){
+                getCurrentNonce(contract.address, templateExecuteContractfunction);
+            }
+        }
     }, 
     'payable': function(){
         return this && this.payable;
@@ -367,8 +377,13 @@ Template['elements_executeContract_function'].helpers({
    'isMicroChainContract': function(){
         return checkMicroChainContract();
     },
+    /**
+    Get the nonce for select contract
+
+    @method (nonce)
+    */
     'nonce': function(){
-          var nonce = TemplateVar.get('nonce');
+          var nonce = TemplateVar.getFrom('myConfig', 'nonce');
           return nonce;
     }
 });
@@ -478,6 +493,8 @@ Template['elements_executeContract_function'].events({
                 // SIMPLE TX
                 } else {
                     var tranData;
+                    var viaAddr = chain3.vnode.address;
+
                     if(checkMicroChainContract()){
                         var nonce = TemplateVar.get('nonce');
                         if(typeof nonce === 'undefined' || nonce === -1){
@@ -498,7 +515,7 @@ Template['elements_executeContract_function'].events({
                             gas: 0,
                             shardingFlag: 1,
                             nonce: nonce,
-                            via: selectedAccount.address
+                            via: viaAddr
                         };
 
                         isMicroChain = true;
