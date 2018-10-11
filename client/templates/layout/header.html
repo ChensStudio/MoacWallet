@@ -37,7 +37,9 @@
                     {{else}}
                         <i class="icon-feed"></i> {{$.Session.get "peerCount"}} <span class="hide-on-small">{{i18n 'wallet.app.texts.peers'}}</span>
                         &nbsp;&nbsp;|&nbsp;&nbsp;
-                        <i class="icon-layers"></i> {{formattedBlockNumber}} <i class="icon-clock" style="margin-left: 10px;"></i> {{{timeSinceBlock}}} <span class="hide-on-small">{{{timeSinceBlockText}}}</span>
+                        <i class="icon-layers"></i> {{formattedBlockNumber}} 
+                        <i class="icon-clock" style="margin-left: 10px;"></i> {{{timeSinceBlock}}} 
+                        <span class="hide-on-small">{{{timeSinceBlockText}}}</span>
                     {{/with}}
                 {{/if}}
             </li>

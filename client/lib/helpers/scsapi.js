@@ -83,13 +83,21 @@ scsApi.getDappState = function(rpcaddr, rpcport, sender, subChainAddr, callback)
     return scsApi.request(bodyJSON, rpcaddr, rpcport, sender, subChainAddr, callback);
 };
 
-scsApi.GetStorageAt = function(rpcaddr, rpcport, subChainAddr, keyName, callback) {
+scsApi.getStorageAt = function(rpcaddr, rpcport, subChainAddr, keyName, callback) {
     if (!subChainAddr) {
         subChainAddr = scsApi.contractAddress;
     }
-    if (!sender) {
-        sender = scsApi.sender;
+
+    var bodyJSON = { "jsonrpc": "2.0", "id": 0, "method": "ScsRPCMethod.GetStorageAt", "params": {"SubChainAddr": subChainAddr, "Keys": [keyName]}};
+    return scsApi.request(bodyJSON, rpcaddr, rpcport, sender, subChainAddr, callback);
+};
+
+scsApi.getBlockNumber = function(rpcaddr, rpcport, subChainAddr, callback) {
+    if (!subChainAddr) {
+        subChainAddr = scsApi.contractAddress;
     }
-    var bodyJSON = { "jsonrpc": "2.0", "id": 0, "method": "ScsRPCMethod.GetDappState", "params": {"SubChainAddr": subChainAddr, "Keys": [keyName]}};
+    
+    var sender = '0x0000000000000000000000000000000000000000';
+    var bodyJSON = { "jsonrpc": "2.0", "id": 0, "method": "ScsRPCMethod.GetBlockNumber", "params": {"Sender": sender, "SubChainAddr": subChainAddr}};
     return scsApi.request(bodyJSON, rpcaddr, rpcport, sender, subChainAddr, callback);
 };

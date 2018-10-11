@@ -1,3 +1,4 @@
+import {Meteor} from 'meteor/meteor';
 import {Template} from 'meteor/templating';
 import './accountLink.js';
 import '../../lib/helpers/helperFunctions.js';
@@ -33,10 +34,23 @@ function getCurrentNonce(contractAddress, template){
                     }});
                 }
             }
-            
-            TemplateVar.set(template, 'nonce', nonce);
+            var oldnonce = TemplateVar.get(template, 'nonce');
+            if (nonce!==oldnonce)
+            {
+                TemplateVar.set(template, 'nonce', nonce);
+                TemplateVar.set(template, 'sending', false);
+            }
         });
     }
+};
+
+function formatBlockNumber(template){
+    scsApi.getBlockNumber(contract.monitorAddr, contract.monitorPort, contract.address, (error, result) => {
+        if(!error){
+            blockNumber = JSON.parse(result.content).result;
+            TemplateVar.set(template, 'blockNumber', numeral(blockNumber).format('0,0'));
+        }
+    });
 };
 
 /**
@@ -68,6 +82,15 @@ Template['elements_executeContract'].onCreated(function(){
             TemplateVar.set(template, 'hasCode', true);
         }
     });
+
+    if(checkMicroChainContract())
+    {
+        Meteor.setInterval(
+            function(){
+                formatBlockNumber(template);
+            }, 3000
+        );
+    }
 });
 
 
@@ -140,7 +163,82 @@ Template['elements_executeContract'].helpers({
     */
     'monitorPort': function(){
         return contract.monitorPort;
-    }
+    },
+    /**
+    Formats the last block number
+
+    @method (formattedBlockNumber)
+    @return {String}
+    */
+   'formattedBlockNumber': function() {
+        var blockNumber;
+        var template = this;
+
+        scsApi.getBlockNumber(contract.monitorAddr, contract.monitorPort, contract.address, (error, result) => {
+            if(!error){
+                blockNumber = JSON.parse(result.content).result;
+                TemplateVar.set(template, 'blockNumber', blockNumber);
+            }
+        });
+    },
+    /**
+    Gets the time since the last block
+
+    @method (timeSinceBlock)
+    */
+    // 'timeSinceBlock': function () {
+        
+    //     if (McBlocks.latest.timestamp == 0 
+    //         || typeof McBlocks.latest.timestamp == 'undefined')   
+    //         return false;
+
+    //     var timeSince = moment(McBlocks.latest.timestamp, "X");
+    //     var now = moment();
+    //     var diff = now.diff(timeSince, "seconds");
+
+    //     if (diff > 60 * 5) {
+    //         Helpers.rerun["10s"].tick();
+    //         return '<span class="red">' + timeSince.fromNow(true) + '</span>';
+    //     } else if (diff > 60) {
+    //         Helpers.rerun["10s"].tick();
+    //         return timeSince.fromNow(true);
+    //     } else if (diff < 2) {
+    //         Helpers.rerun["1s"].tick();
+    //         return ''
+    //     } else {
+    //         Helpers.rerun["1s"].tick();
+    //         return diff + "s ";
+    //     }
+    // },
+    /**
+    Formats the time since the last block
+
+    @method (timeSinceBlockText)
+    */
+    // 'timeSinceBlockText': function () {
+        
+    //     if (McBlocks.latest.timestamp == 0 
+    //         || typeof McBlocks.latest.timestamp == 'undefined')   
+    //         return TAPi18n.__('wallet.app.texts.waitingForBlocks');
+
+    //     var timeSince = moment(McBlocks.latest.timestamp, "X");
+    //     var now = moment();
+    //     var diff = now.diff(timeSince, "seconds");
+
+    //     if (diff > 60 * 5) {
+    //         Helpers.rerun["10s"].tick();
+    //         return '<span class="red">' + TAPi18n.__('wallet.app.texts.timeSinceBlock') + '</span>';
+    //     } else if (diff > 60) {
+    //         Helpers.rerun["10s"].tick();
+    //         return TAPi18n.__('wallet.app.texts.timeSinceBlock');
+    //     } else if (diff < 2) {
+    //         Helpers.rerun["1s"].tick();
+    //         return '<span class="blue">' + TAPi18n.__('wallet.app.texts.blockReceived') + '</span>';
+    //     } else {
+    //         Helpers.rerun["1s"].tick();
+    //         return TAPi18n.__('wallet.app.texts.timeSinceBlock');
+    //     }
+    // }
 });
 
 Template['elements_executeContract'].events({
@@ -344,6 +442,15 @@ Template['elements_executeContract_function'].onCreated(function(){
             TemplateVar.set('amount', McTools.toSha(template.find('input[name="amount"]').value.replace(',','.'), unit));
         }
     });
+
+    if(checkMicroChainContract())
+    {
+        Meteor.setInterval(
+            function(){
+                getCurrentNonce(contract.address, template);
+            }, 3000
+        );
+    }
 });
 
 Template['elements_executeContract_function'].onRendered(function(){
@@ -365,7 +472,7 @@ Template['elements_executeContract_function'].helpers({
     'payable': function(){
         return this && this.payable;
     },
-   'estimatedGas': function(){
+    'estimatedGas': function(){
         var estimatedGas = TemplateVar.get('estimatedGas');
         return estimatedGas;
     },
@@ -532,14 +639,18 @@ Template['elements_executeContract_function'].events({
                     }
 
                     chain3.mc.sendTransaction(tranData, function(error, txHash){
-
-                        TemplateVar.set(template, 'sending', false);
+                        if(!checkMicroChainContract())
+                        {
+                            TemplateVar.set(template, 'sending', false);
+                        }
 
                         if(!error) {
-                            if(!checkMicroChainContract){
+                            if(!checkMicroChainContract()){
                                 addTransactionAfterSend(txHash, amount, selectedAccount.address, to, gasPrice, estimatedGas, data);
                             }
-
+                            else{
+                                getCurrentNonce(contract.address, template);
+                            }
                             // FlowRouter.go('dashboard');
                             GlobalNotification.success({
                                content: 'i18n:wallet.send.transactionSent',
@@ -553,7 +664,9 @@ Template['elements_executeContract_function'].events({
                                 duration: 8
                             });
 
-                            getCurrentNonce(contract.address, template);
+                            if(checkMicroChainContract()){
+                                getCurrentNonce(contract.address, template);
+                            }
                         }
                     });
                 }   

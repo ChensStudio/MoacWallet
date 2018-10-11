@@ -1,14 +1,17 @@
 <template name="elements_executeContract">
     {{#if TemplateVar.get "hasCode"}}
-
         {{reactiveContext}}
-
         <div class="dapp-clear-fix"></div>
 
         <!-- EXECUTE CONTRACT -->
         <div class="execute-contract">
-            <!-- <h2> {{i18n "wallet.contracts.contractInformation"}} </h2> -->
+            {{#if isMicroChainContract}}
+                <i class="icon-layers"></i>  {{TemplateVar.get "blockNumber"}} 
+                <!-- <i class="icon-clock" style="margin-left: 10px;"></i> {{{timeSinceBlock}}}  -->
+                <!-- <span class="hide-on-small">{{{timeSinceBlockText}}}</span> -->
+            {{/if}}
 
+            <br>
             <button class="toggle-visibility dapp-block-button dapp-small">
                 {{#if (TemplateVar.get "executionVisible")}}
                     {{i18n "wallet.contracts.buttons.hideContractInfo"}}
@@ -18,7 +21,8 @@
             </button>
             
             {{#if TemplateVar.get "executionVisible"}}
-            
+                <br>
+                <h2> {{i18n "wallet.contracts.contractInformation"}} </h2>
                 <div class="dapp-clear-fix"></div>
 
                 <div class="row clear">
