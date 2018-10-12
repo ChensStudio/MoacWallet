@@ -490,7 +490,7 @@ Template['elements_executeContract_function'].helpers({
     @method (nonce)
     */
     'nonce': function(){
-          var nonce = TemplateVar.getFrom('myConfig', 'nonce');
+          var nonce = TemplateVar.get('nonce');
           return nonce;
     }
 });
@@ -653,7 +653,7 @@ Template['elements_executeContract_function'].events({
                             }
                             // FlowRouter.go('dashboard');
                             GlobalNotification.success({
-                               content: 'i18n:wallet.send.transactionSent',
+                               content: 'i18n:wallet.send.subChainTransactionSent',
                                duration: 2
                             });
                         } else {
