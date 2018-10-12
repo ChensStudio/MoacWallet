@@ -694,27 +694,30 @@ Template['views_send'].events({
                 } else {
                     var tranData;
                     var isMicroChain = false;
-                    var viaAddr = chain3.vnode.address;
 
                     if(microChainDapp){
-                        tranData={from: selectedAccount.address,
-                        to: to,
-                        data: data,
-                        value: amount,
-                        gas: 0,
-                        shardingFlag: 1,
-                        nonce: 0,
-                        via: viaAddr
-                    };
+                        var viaAddr = chain3.vnode.address;
+                        tranData={
+                            from: selectedAccount.address,
+                            to: to,
+                            data: data,
+                            value: amount,
+                            gas: 0,
+                            shardingFlag: 1,
+                            nonce: 0,
+                            via: viaAddr
+                        };
 
                         isMicroChain = true;
                     }
                     else{
-                        tranData={from: selectedAccount.address,
+                        tranData={
+                            from: selectedAccount.address,
                             to: to,
                             data: data,
                             value: amount,
-                            gas: estimatedGas};
+                            gas: estimatedGas
+                        };
                     }
 
                     chain3.mc.sendTransaction(tranData, function(error, txHash){
@@ -732,22 +735,21 @@ Template['views_send'].events({
                                 var contractName = contract.name.replace(/([A-Z])/g, ' $1');
                                 var jsonInterface = contract.jsonInterface
                                 var jsonInterfaceString = JSON.stringify(contract.jsonInterface);
-                                var res;
 
                                 Meteor.setTimeout(
                                     function(){
                                         scsApi.setDappAbi(monitorAddr, monitorPort, selectedAccount.address, to, jsonInterfaceString, (error, result) => {
                                         if(!error){
-                                            res = JSON.parse(result.content).result;
-                                            if(res.toLowerCase()==="success"){
+                                            result = JSON.parse(result.content).result;
+                                            if(result.toLowerCase()==="success"){
                                                 GlobalNotification.success({ 
-                                                    content: "Abi setting: " + res,
+                                                    content: "Abi setting: " + result,
                                                     duration: 8
                                                 });
                                             }
                                             else{
                                                 GlobalNotification.error({ 
-                                                    content: "Abi setting" + res,
+                                                    content: "Abi setting" + result,
                                                     duration: 8
                                                 });
                                             }
