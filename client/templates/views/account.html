@@ -122,24 +122,20 @@
                                 {{i18n "wallet.accounts.buttons.deposit"}}
                             </a>
                         </li>
-
                         {{#if $eq ($.Session.get "network") "main"}}
-
-                          <!-- {{#if ownedAccount}}
-                          <li>
-                              <a href="https://changelly.com/widget/v1?auth=email&from=USD&to=MC&merchant_id=47f87f7cddda&address={{address}}&amount=1&ref_id=e25c5a2e8719&color=02a8f3" target="_blank">
-                                  <i class="icon-moac"></i>
-                                  {{i18n "wallet.accounts.buttons.buyEther"}}
-                              </a>
-                          </li>
-                          {{/if}} -->
-
-                        <li>
-                            <a href="http://explorer.moac.io/addr/{{address}}" target="_blank">
-                                <i class="icon-info"></i>
-                                {{i18n "wallet.accounts.buttons.viewOnExplorer"}}
-                            </a>
-                        </li>
+                            <li>
+                                <a href="http://explorer.moac.io/addr/{{address}}" target="_blank">
+                                    <i class="icon-info"></i>
+                                    {{i18n "wallet.accounts.buttons.viewOnExplorer"}}
+                                </a>
+                            </li>
+                        {{else if $eq ($.Session.get "network") "test"}}
+                            <li>
+                                <a href="http://47.75.144.55:3000/addr/{{address}}" target="_blank">
+                                    <i class="icon-info"></i>
+                                    {{i18n "wallet.accounts.buttons.viewOnExplorer"}}
+                                </a>
+                            </li>                            
                         {{/if}}
 
                         <li>
@@ -162,7 +158,6 @@
                                 </button>
                             </li>
                         {{/if}}
-
                     </ul>
                 </nav>
             </aside>

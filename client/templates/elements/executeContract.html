@@ -1,8 +1,14 @@
 <template name="elements_executeContract">
     {{#if TemplateVar.get "hasCode"}}
+        {{#if isMicroChainContract}}
+            <div class="dapp-sticky-bar">
+                <i class="icon-layers"></i>  {{TemplateVar.get "blockNumber"}} 
+                <!-- <i class="icon-clock" style="margin-left: 10px;"></i> {{{timeSinceBlock}}}  -->
+                <!-- <span class="hide-on-small">{{{timeSinceBlockText}}}</span> -->
+            </div>
+        {{/if}}
         {{reactiveContext}}
         <div class="dapp-clear-fix"></div>
-
         <!-- EXECUTE CONTRACT -->
         <div class="execute-contract">
             {{#if isMicroChainContract}}
@@ -10,7 +16,6 @@
                 <!-- <i class="icon-clock" style="margin-left: 10px;"></i> {{{timeSinceBlock}}}  -->
                 <!-- <span class="hide-on-small">{{{timeSinceBlockText}}}</span> -->
             {{/if}}
-
             <br>
             <button class="toggle-visibility dapp-block-button dapp-small">
                 {{#if (TemplateVar.get "executionVisible")}}
@@ -146,11 +151,10 @@
         <input type="number" min="21000" class="estimtedGasInput" value="{{estimatedGas}}">
         <br>
     {{/if}}
-    <button class="dapp-block-button execute">
-        {{#if TemplateVar.get "sending"}} 
-            {{i18n 'buttons.sending'}}
-        {{else}}
-            {{i18n 'wallet.contracts.buttons.execute'}}
-        {{/if}}
-    </button>
+    {{#if TemplateVar.get "sending"}} 
+        <button class="dapp-block-button execute" disabled>{{i18n 'buttons.sending'}}</button>
+    {{else}}
+        <button class="dapp-block-button execute">{{i18n 'wallet.contracts.buttons.execute'}}</button>
+    {{/if}}
+    
 </template>

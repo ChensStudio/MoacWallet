@@ -743,7 +743,7 @@ Template['views_send'].events({
                                             result = JSON.parse(result.content).result;
                                             if(result.toLowerCase()==="success"){
                                                 GlobalNotification.success({ 
-                                                    content: "Abi setting: " + result,
+                                                    content: "Microchain contract deployed: " + result,
                                                     duration: 8
                                                 });
                                             }

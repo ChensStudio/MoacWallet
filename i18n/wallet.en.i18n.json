@@ -252,6 +252,7 @@
             "createContract": "Create contract",
             "provideGas": "Provide gas",
             "transactionSent": "Transaction sent",
+            "subChainTransactionSent": "Transaction has been sent. Please wait for Nonce changing to submit transactions.",
             "subChainDapp": "MicroChain Dapp",
             "subChainBaseAddress": "MicroChain Base Address",
             "nonce": "Nonce",
