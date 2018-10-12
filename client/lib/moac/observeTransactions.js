@@ -150,20 +150,11 @@ var updateTransaction = function(newDocument, transaction, receipt){
 
                     // Add contract to the contract list
                     if(oldTx && oldTx.jsonInterface) {
-                        if(transaction.isMicroChain === false) {
-                            CustomContracts.upsert({address: receipt.contractAddress}, {$set: {
-                                address: receipt.contractAddress,
-                                name: ( oldTx.contractName || 'New Contract') + ' ' + receipt.contractAddress.substr(2, 4),
-                                jsonInterface: oldTx.jsonInterface
-                            }});
-                        }
-                        else {
-                            MicroChainContracts.upsert({address: transaction.to}, {$set: {
-                                address: transaction.to,
-                                name: ( oldTx.contractName || 'New Contract') + ' ' + transaction.to.substr(2, 4),
-                                jsonInterface: oldTx.jsonInterface
-                            }});
-                        }
+                        CustomContracts.upsert({address: receipt.contractAddress}, {$set: {
+                            address: receipt.contractAddress,
+                            name: ( oldTx.contractName || 'New Contract') + ' ' + receipt.contractAddress.substr(2, 4),
+                            jsonInterface: oldTx.jsonInterface
+                        }});
 
 
                         //If it looks like a token, add it to the list
