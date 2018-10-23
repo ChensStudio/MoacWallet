@@ -61,8 +61,6 @@ var getDataField = function(){
     // make reactive to the show/hide of the textarea
     TemplateVar.getFrom('.compile-contract','byteTextareaShown');
 
-
-
     // send tokens
     var selectedToken = TemplateVar.get('selectedToken');
 
