@@ -1,6 +1,5 @@
 import {Template} from 'meteor/templating';
 import '../../lib/helpers/helperFunctions.js'
-import '../../lib/helpers/scsapi.js';
 import '../../lib/collections.js';
 import '../../lib/moac/walletConnector.js';
 import './modals/sendTransactionInfo.js';
@@ -734,33 +733,6 @@ Template['views_send'].events({
                             else{
                                 var contractName = contract.name.replace(/([A-Z])/g, ' $1');
                                 var jsonInterface = contract.jsonInterface
-                                var jsonInterfaceString = JSON.stringify(contract.jsonInterface);
-
-                                Meteor.setTimeout(
-                                    function(){
-                                        scsApi.setDappAbi(monitorAddr, monitorPort, selectedAccount.address, to, jsonInterfaceString, (error, result) => {
-                                        if(!error){
-                                            result = JSON.parse(result.content).result;
-                                            if(result.toLowerCase()==="success"){
-                                                GlobalNotification.success({ 
-                                                    content: "Microchain contract deployed: " + result,
-                                                    duration: 8
-                                                });
-                                            }
-                                            else{
-                                                GlobalNotification.error({ 
-                                                    content: "Abi setting" + result,
-                                                    duration: 8
-                                                });
-                                            }
-                                        }
-                                        else{
-                                            GlobalNotification.error({
-                                                content: "Abi setting: fail",
-                                                duration: 8
-                                            });
-                                        }
-                                    })}, 10000);
 
                                 MicroChainContracts.upsert({address: to}, {$set: {
                                     address: to,

@@ -164,23 +164,23 @@ var addMicroChainContract = function() {
         //     return false;
         // }
 
-        scsApi.setDappAbi(monitorAddr, monitorPort, selectedAccountAddr, address, jsonInterface, (error, result) => {
-            if(!error){
-                result = JSON.parse(result.content).result;
-                if(result!=="success"){
-                    GlobalNotification.error({
-                        content: "Set ABI error",
-                        duration: 4
-                    });
-                }
-            }
-            else{
-                GlobalNotification.error({
-                    content: translateExternalErrorMessage(error.message),
-                    duration: 4
-                });
-            }
-        });
+        // scsApi.setDappAbi(monitorAddr, monitorPort, selectedAccountAddr, address, jsonInterface, (error, result) => {
+        //     if(!error){
+        //         result = JSON.parse(result.content).result;
+        //         if(result!=="success"){
+        //             GlobalNotification.error({
+        //                 content: "Set ABI error",
+        //                 duration: 4
+        //             });
+        //         }
+        //     }
+        //     else{
+        //         GlobalNotification.error({
+        //             content: translateExternalErrorMessage(error.message),
+        //             duration: 4
+        //         });
+        //     }
+        // });
 
         MicroChainContracts.upsert({address: address}, {$set: {
             address: address,

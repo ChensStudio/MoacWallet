@@ -1,8 +1,8 @@
 import {Template} from 'meteor/templating';
 import '../../lib/helpers/templateHelpers.js';
 import '../../lib/helpers/helperFunctions.js';
-import '../../lib/helpers/scsapi.js';
 import '../../lib/moac/1_chain3Init.js';
+import '../../lib/moac/2_chain3scsInit.js';
 import '../../lib/moac/observeBlocks.js';
 import '../../lib/moac/observeCustomContracts.js';
 import '../../lib/moac/observeMicroChainContracts.js';

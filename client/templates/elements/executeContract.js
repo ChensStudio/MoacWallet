@@ -2,7 +2,7 @@ import {Meteor} from 'meteor/meteor';
 import {Template} from 'meteor/templating';
 import './accountLink.js';
 import '../../lib/helpers/helperFunctions.js';
-import '../../lib/helpers/scsapi.js';
+import '../../lib/moac/2_chain3scsInit.js';
 import './executeContract.html';
 
 var contract;
@@ -21,9 +21,10 @@ function getCurrentNonce(contractAddress, template){
     if (monitorAddr !== "" && typeof monitorAddr !== undefined && monitorPort !== "" && typeof monitorPort !== undefined){
         var sender = Helpers.getAccountByAddress(TemplateVar.getFrom('.execute-contract select[name="dapp-select-account"]', 'value'));
         
-        scsApi.getNonce(monitorAddr, monitorPort, sender.address, contractAddress, (error, result) => {
+        scsApi2.init(monitorAddr, monitorPort);
+        chain3.scs.getNonce(contractAddress, sender.address, (error, result) => {
             if(!error){
-                nonce = JSON.parse(result.content).result;
+                nonce = result;
                 if (typeof nonce === 'undefined'){
                     nonce = -1;
                 }
@@ -44,11 +45,12 @@ function getCurrentNonce(contractAddress, template){
     }
 };
 
-function formatBlockNumber(template){
-    scsApi.getBlockNumber(contract.monitorAddr, contract.monitorPort, contract.address, (error, result) => {
+function formatBlockNumber(monitorAddr, monitorPort, template){
+    scsApi2.init(monitorAddr, monitorPort);
+
+    chain3.scs.getBlockNumber(contract.address, (error, result) => {
         if(!error){
-            blockNumber = JSON.parse(result.content).result;
-            TemplateVar.set(template, 'blockNumber', numeral(blockNumber).format('0,0'));
+            TemplateVar.set(template, 'blockNumber', numeral(result).format('0,0'));
         }
     });
 };
@@ -87,7 +89,8 @@ Template['elements_executeContract'].onCreated(function(){
     {
         Meteor.setInterval(
             function(){
-                formatBlockNumber(template);
+                var contract = MicroChainContracts.findOne({address: template.data.address}, {});
+                formatBlockNumber(contract.monitorAddr, contract.monitorPort, template);
             }, 3000
         );
     }
@@ -107,8 +110,8 @@ Template['elements_executeContract'].helpers({
             contract = MicroChainContracts.findOne({address: addr}, {});
             this.jsonInterface = contract.jsonInterface;
 
-            //var contractInstance = scsApi;
-            var contractInstance = chain3.mc.contract(this.jsonInterface).at(addr);
+            scsApi2.init(contract.monitorAddr, contract.monitorPort);
+            var contractInstance = chain3.dapp(this.jsonInterface).at(addr);
         }
         else
         {
@@ -171,13 +174,12 @@ Template['elements_executeContract'].helpers({
     @return {String}
     */
    'formattedBlockNumber': function() {
-        var blockNumber;
         var template = this;
 
-        scsApi.getBlockNumber(contract.monitorAddr, contract.monitorPort, contract.address, (error, result) => {
+        scsApi2.init(monitorAddr, monitorPort);
+        chain3.scs.getBlockNumber(contract.address, (error, result) => {
             if(!error){
-                blockNumber = JSON.parse(result.content).result;
-                TemplateVar.set(template, 'blockNumber', blockNumber);
+                TemplateVar.set(template, 'blockNumber', result);
             }
         });
     },
@@ -350,31 +352,7 @@ Template['elements_executeContract_constant'].onCreated(function(){
             } 
         });
 
-        if(checkMicroChainContract()){
-            scsApi.anyCall(contract.monitorAddr, contract.monitorPort, "0x0000000000000000000000000000000000000000", contract.address, template.data.name, (error, results) => {
-                if(!error){
-                    var outputs = [];
-
-                    results = JSON.parse(results.content).result;
-                    results = JSON.parse(results);
-                    if(results.length ===1){
-                        template.data.outputs[0].value = results[0];
-                        outputs.push(template.data.outputs[0]);
-                    }
-                    else{
-                        outputs = _.map(template.data.outputs, function(output, i) {
-                            output.value = results[i];
-                            return output;
-                        });
-                    }
-                    TemplateVar.set(template, 'outputs', outputs);
-                }
-            });
-        }
-        else {
-            template.data.contractInstance[template.data.name].apply(null, args);
-        }
-
+        template.data.contractInstance[template.data.name].apply(null, args);
     });
 });
 
@@ -639,14 +617,10 @@ Template['elements_executeContract_function'].events({
                     }
 
                     chain3.mc.sendTransaction(tranData, function(error, txHash){
-                        if(!checkMicroChainContract())
-                        {
-                            TemplateVar.set(template, 'sending', false);
-                        }
-
                         if(!error) {
                             if(!checkMicroChainContract()){
                                 addTransactionAfterSend(txHash, amount, selectedAccount.address, to, gasPrice, estimatedGas, data);
+                                getCurrentNonce(contract.address, template);
                             }
                             else{
                                 getCurrentNonce(contract.address, template);
@@ -656,6 +630,8 @@ Template['elements_executeContract_function'].events({
                                content: 'i18n:wallet.send.subChainTransactionSent',
                                duration: 2
                             });
+
+
                         } else {
                             // McElements.Modal.hide();
 
@@ -665,6 +641,7 @@ Template['elements_executeContract_function'].events({
                             });
 
                             if(checkMicroChainContract()){
+                                TemplateVar.set(template, 'sending', false);
                                 getCurrentNonce(contract.address, template);
                             }
                         }
