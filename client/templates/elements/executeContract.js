@@ -620,18 +620,19 @@ Template['elements_executeContract_function'].events({
                         if(!error) {
                             if(!checkMicroChainContract()){
                                 addTransactionAfterSend(txHash, amount, selectedAccount.address, to, gasPrice, estimatedGas, data);
-                                getCurrentNonce(contract.address, template);
+                                //getCurrentNonce(contract.address, template);
+                                FlowRouter.go('dashboard');
                             }
                             else{
                                 getCurrentNonce(contract.address, template);
                             }
-                            // FlowRouter.go('dashboard');
+                            
                             GlobalNotification.success({
                                content: 'i18n:wallet.send.subChainTransactionSent',
                                duration: 2
                             });
 
-
+                            TemplateVar.set(template, 'sending', false);
                         } else {
                             // McElements.Modal.hide();
 
@@ -640,8 +641,8 @@ Template['elements_executeContract_function'].events({
                                 duration: 8
                             });
 
+                            TemplateVar.set(template, 'sending', false);
                             if(checkMicroChainContract()){
-                                TemplateVar.set(template, 'sending', false);
                                 getCurrentNonce(contract.address, template);
                             }
                         }
