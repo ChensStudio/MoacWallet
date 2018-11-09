@@ -153,7 +153,7 @@ Template['elements_compileContract'].onRendered(function() {
                     sources: sourceCode,
                     settings: {
                       optimizer: {
-                        enabled: false,
+                        enabled: true,
                         runs: 200
                       },
                     //   libraries: opts.libraries,
