@@ -120,6 +120,10 @@ var translateExternalErrorMessage = function(message) {
 // Set basic variables
 Template['views_send'].onCreated(function(){
     var template = this;
+    Tracker.autorun(function() {
+        FlowRouter.watchPathChange();
+        TemplateVar.set(template, 'subChainDapp', false);
+    });
 
     // SET THE DEFAULT VARIABLES
     TemplateVar.set('amount', '0');
