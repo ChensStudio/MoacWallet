@@ -258,6 +258,7 @@
             "nonce": "Nonce",
             "monitorAddr": "SCS Monitor Address",
             "monitorPort": "SCS Monitor Port",
+            "microchaindapp": "Initial Amount of MicroChain DAPP Token",
             "error": {
                 "emptyWallet": "The account you want to send from is empty.",
                 "notEnoughFunds": "You don't have enough funds in the account.",
@@ -269,6 +270,7 @@
             "texts": {
                 "ownerPaysGas": "Gas is paid by the owner of the wallet contract",
                 "sendAmount": "You want to send <strong>__amount__</strong>.",
+                "dappInitAmount": "You want to intitial <strong>__amount__</strong> Microchain Tokens.",
                 "sendAmountEquivalent": "You want to send <strong>__amount__</strong> in Mc, using exchange rates from <a href=\"https://www.cryptocompare.com/coins/eth/overview/BTC\" target=\"_blank\">cryptocompare.com</a>.<br>Which is currently an equivalent of <strong>__etherAmount__</strong>.",
                 "sendToken": "You want to send <strong>__amount__ __symbol__</strong> of <strong> __name__</strong>.",
                 "overDailyLimit": "<p class=\"over-daily\">This amount is over the remaining daily limit of __limit__ (of __total__ per day), so you need __count__ other account to confirm.</p>",

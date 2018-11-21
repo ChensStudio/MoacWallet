@@ -611,11 +611,13 @@ Template['views_send'].events({
                         duration: 2
                     });
 
-                if(new BigNumber(amount, 10).gt(new BigNumber(selectedAccount.balance, 10)))
-                    return GlobalNotification.warning({
-                        content: 'i18n:wallet.send.error.notEnoughFunds',
-                        duration: 2
-                    });
+                if(!microChainDapp){
+                    if(new BigNumber(amount, 10).gt(new BigNumber(selectedAccount.balance, 10)))
+                        return GlobalNotification.warning({
+                            content: 'i18n:wallet.send.error.notEnoughFunds',
+                            duration: 2
+                        });
+                }
 
             } else { // Token transfer
 
@@ -633,11 +635,13 @@ Template['views_send'].events({
                 var token = Tokens.findOne({address: tokenAddress}),
                     tokenBalance = token.balances[selectedAccount._id] || '0';
 
-                if(new BigNumber(amount, 10).gt(new BigNumber(tokenBalance, 10)))
-                    return GlobalNotification.warning({
-                        content: 'i18n:wallet.send.error.notEnoughFunds',
-                        duration: 2
-                    });
+                if(!microChainDapp){
+                    if(new BigNumber(amount, 10).gt(new BigNumber(tokenBalance, 10)))
+                        return GlobalNotification.warning({
+                            content: 'i18n:wallet.send.error.notEnoughFunds',
+                            duration: 2
+                        });
+                }
             }
 
             // The function to send the transaction
