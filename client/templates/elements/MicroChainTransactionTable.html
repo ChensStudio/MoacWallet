@@ -1,4 +1,4 @@
-<template name="elements_transactions_table">
+<template name="elements_microchaintransactions_table">
     <br>
     {{#unless $eq collection "PendingConfirmations"}}
         <input type="text" class="filter-transactions" placeholder="{{i18n 'wallet.transactions.filter'}}">
@@ -6,7 +6,7 @@
     <table class="dapp-zebra transactions">
         <tbody>
             {{#each items}}
-                {{> elements_transactions_row}}
+                {{> elements_microchaintransactions_row}}
             {{else}}
                 <tr class="full-width">
                     <td colspan="5">
@@ -27,7 +27,8 @@
     </table>
 </template>
 
-<template name="elements_transactions_row">
+<template name="elements_microchaintransactions_row">
+    <!-- {{../SCSblockNumber}} -->
     <tr class="{{#if $eq unConfirmed.confirmations 0}}unconfirmed{{/if}} {{#if disabled}}disabled{{/if}}  {{#if $eq ../collection "PendingConfirmations"}}pending{{/if}}" data-operation="{{operation}}" data-transaction-hash="{{transactionHash}}" data-block-hash="{{blockHash}}">
         {{#unless $eq ../collection "PendingConfirmations"}}
             {{#with unConfirmed}}
@@ -47,9 +48,9 @@
                 {{> elements_account_link address=from FromMother="true"}}
                 <span class="arrow">→</span> 
                 {{#if to}}
-                    {{> elements_account_link address=to isMicroChainContract=ismicrochain FromMother="true"}}
+                    {{> elements_account_link address=to isMicroChainContract=ismicrochain}}
                 {{else}}
-                    {{> elements_createdContractAt contractAddress=contractAddress deployedData=deployedData FromMother="true"}}
+                    {{> elements_createdContractAt contractAddress=contractAddress deployedData=deployedData}}
                 {{/if}}
             </p>
 

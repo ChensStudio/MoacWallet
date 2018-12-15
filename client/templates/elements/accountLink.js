@@ -16,6 +16,7 @@ Template['elements_account_link'].helpers({
     @method (getAccount)
     */
     'getAccount': function(){
+        //console.log('get address',Helpers.getAccountByAddress(this.address) || {address: chain3.toChecksumAddress(this.address)});
         return Helpers.getAccountByAddress(this.address) || {address: chain3.toChecksumAddress(this.address)};
     },
     /**
@@ -31,9 +32,9 @@ Template['elements_account_link'].helpers({
 
     @method (nameDisplay)
     */
-    'displayName': function(){
-        return this.ens ? this.name.split('.').slice(0, -1).reverse().join(' ▸ ') : this.name;
-    },
+    // 'displayName': function(){
+    //     return this.ens ? this.name.split('.').slice(0, -1).reverse().join(' ▸ ') : this.name;
+    // },
     /**
     Displays ENS names with triangles
 
@@ -54,5 +55,12 @@ Template['elements_account_link'].helpers({
         });
 
 
+    },
+    'isMicroContract':function(){
+        // console.log(this);
+        // if (!MicroChainContracts.findOne({address: this.address}) && !CustomContracts.findOne({address: this.address})){
+        //     return true;
+        // }
+        return MicroChainContracts.findOne({address: this.address})?true:false;
     }
 });

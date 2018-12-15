@@ -91,6 +91,8 @@ connectToNode = function(){
 
     observeTransactions();
 
+    observeMicroChainTransactions();
+
     observeEvents();
 
     observeMicroChainEvents();

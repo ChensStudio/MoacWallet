@@ -4,14 +4,19 @@ import './accountLink.js';
 import '../../lib/helpers/helperFunctions.js';
 import '../../lib/moac/2_chain3scsInit.js';
 import './executeContract.html';
+import './MicroChainTransactionTable.js';
 
 var contract;
 var templateExecuteContractfunction;    //to use nonce
 
 function checkMicroChainContract(){
     var isMicroChainContract = FlowRouter.getParam('isMicroChainContract');
+    // console.log('Microchaincontract address: '+ FlowRouter.getParam('address'));
+    // console.log('Microchaincontract: '+ isMicroChainContract);
+    // console.log(isMicroChainContract == 'true');
     return (isMicroChainContract == 'true');
 };
+
 
 function getCurrentNonce(contractAddress, template){
     var monitorAddr = contract.monitorAddr;
@@ -20,7 +25,7 @@ function getCurrentNonce(contractAddress, template){
 
     if (monitorAddr !== "" && typeof monitorAddr !== undefined && monitorPort !== "" && typeof monitorPort !== undefined){
         var sender = Helpers.getAccountByAddress(TemplateVar.getFrom('.execute-contract select[name="dapp-select-account"]', 'value'));
-        
+        // console.log('sender',sender);
         scsApi2.init(monitorAddr, monitorPort);
         chain3.scs.getNonce(contractAddress, sender.address, (error, result) => {
             if(!error){
@@ -45,12 +50,13 @@ function getCurrentNonce(contractAddress, template){
     }
 };
 
-function formatBlockNumber(monitorAddr, monitorPort, template){
+function formatBlockNumber(monitorAddr, monitorPort,template){
     scsApi2.init(monitorAddr, monitorPort);
 
     chain3.scs.getBlockNumber(contract.address, (error, result) => {
         if(!error){
-            TemplateVar.set(template, 'blockNumber', numeral(result).format('0,0'));
+            // Session.set('blockNumber', numeral(result).format('0,0'));
+            Session.set('blockNumber', result);
         }
     });
 };
@@ -70,7 +76,7 @@ The execute contract template
 
 Template['elements_executeContract'].onCreated(function(){
     var template = this;
-
+    // console.log(this);
     // Set Defaults
     TemplateVar.set('sending', false);
 
@@ -85,15 +91,15 @@ Template['elements_executeContract'].onCreated(function(){
         }
     });
 
-    if(checkMicroChainContract())
-    {
-        Meteor.setInterval(
-            function(){
-                var contract = MicroChainContracts.findOne({address: template.data.address}, {});
-                formatBlockNumber(contract.monitorAddr, contract.monitorPort, template);
-            }, 3000
-        );
-    }
+    // if(checkMicroChainContract())
+    // {
+    //     Meteor.setInterval(
+    //         function(){
+    //             var contract = MicroChainContracts.findOne({address: template.data.address}, {});
+    //             formatBlockNumber(contract.monitorAddr, contract.monitorPort, template);
+    //         }, 3000
+    //     );
+    // }
 });
 
 
@@ -103,6 +109,7 @@ Template['elements_executeContract'].helpers({
 
     @method (reactiveContext)
     */
+
     'reactiveContext': function() {
         var addr = this.address;
 
@@ -167,22 +174,34 @@ Template['elements_executeContract'].helpers({
     'monitorPort': function(){
         return contract.monitorPort;
     },
+    'SCSblockNumber':function(){  //remove 88-96 \ 48-56 and rewrite this when new api comes
+        var template = Template.instance();
+        if(checkMicroChainContract()) {
+        Meteor.setInterval(
+            function(){
+                var contract = MicroChainContracts.findOne({address: template.data.address}, {});
+                formatBlockNumber(contract.monitorAddr, contract.monitorPort,template);
+            }, 10000
+        );
+    }
+         return numeral(Session.get("blockNumber")).format('0,0');
+    },
     /**
     Formats the last block number
 
     @method (formattedBlockNumber)
     @return {String}
     */
-   'formattedBlockNumber': function() {
-        var template = this;
+   // 'formattedBlockNumber': function() {
+   //      var template = this;
 
-        scsApi2.init(monitorAddr, monitorPort);
-        chain3.scs.getBlockNumber(contract.address, (error, result) => {
-            if(!error){
-                TemplateVar.set(template, 'blockNumber', result);
-            }
-        });
-    },
+   //      scsApi2.init(monitorAddr, monitorPort);
+   //      chain3.scs.getBlockNumber(contract.address, (error, result) => {
+   //          if(!error){
+   //              TemplateVar.set(template, 'blockNumber', result);
+   //          }
+   //      });
+   //  },
     /**
     Gets the time since the last block
 
@@ -320,7 +339,7 @@ var formatOutput = function(val) {
 
 Template['elements_executeContract_constant'].onCreated(function(){
     var template = this;
-
+   
     // initialize our input data prior to the first call
     TemplateVar.set('inputs', _.map(template.data.inputs, function(input) {
         return Helpers.addInputValue([input], input, {})[0];
@@ -423,6 +442,7 @@ Template['elements_executeContract_function'].onCreated(function(){
 
     if(checkMicroChainContract())
     {
+        
         Meteor.setInterval(
             function(){
                 getCurrentNonce(contract.address, template);
@@ -516,6 +536,7 @@ Template['elements_executeContract_function'].events({
             amount = TemplateVar.get('amount') || 0,
             selectedAccount = Helpers.getAccountByAddress(TemplateVar.getFrom('.execute-contract select[name="dapp-select-account"]', 'value')),
             data = TemplateVar.get('executeData');
+            // alert(data);
 
         var latestTransaction =  Transactions.findOne({}, {sort: {timestamp: -1}});
         if (latestTransaction && latestTransaction.gasPrice)
@@ -539,7 +560,6 @@ Template['elements_executeContract_function'].events({
 
                 // CONTRACT TX
                 if(contracts['ct_'+ selectedAccount._id]) {
-
                     // Load the accounts owned by user and sort by balance
                     var accounts = McAccounts.find({name: {$exists: true}}, {sort: {name: 1}}).fetch();
                     accounts.sort(Helpers.sortByBalance);
@@ -560,7 +580,7 @@ Template['elements_executeContract_function'].events({
                         console.log(error, txHash);
                         if(!error) {
                             console.log('SEND from contract', amount);
-
+                            //add transaction to motherchain table
                             addTransactionAfterSend(txHash, amount, selectedAccount.address, to, gasPrice, estimatedGas, data);
 
                             FlowRouter.go('dashboard');
@@ -619,11 +639,12 @@ Template['elements_executeContract_function'].events({
                     chain3.mc.sendTransaction(tranData, function(error, txHash){
                         if(!error) {
                             if(!checkMicroChainContract()){
-                                addTransactionAfterSend(txHash, amount, selectedAccount.address, to, gasPrice, estimatedGas, data);
+                                addTransactionAfterSend(txHash, amount, selectedAccount.address, to, gasPrice, estimatedGas, data,false);
                                 //getCurrentNonce(contract.address, template);
                                 FlowRouter.go('dashboard');
                             }
                             else{
+                                addMicroChainTransactionAfterSend(txHash, amount, selectedAccount.address, to, gasPrice, estimatedGas, data, true);
                                 getCurrentNonce(contract.address, template);
                             }
                             

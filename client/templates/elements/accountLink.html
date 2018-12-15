@@ -1,13 +1,39 @@
 <template name="elements_account_link">
     {{#with getAccount}}
         <span class="address dapp-shorten-text {{ensClass}}">
-            {{> dapp_identicon identity=address class="dapp-tiny"}} 
-            {{#if name}}
-                <a href="{{pathFor route='account' address=address}}">{{displayName}}</a>
+         {{> dapp_identicon identity=address class="dapp-tiny"}} 
+         {{#if $eq ../FromMother "true"}}
+
+            {{#unless isMicroContract}}
+               
+                    {{#if name}}
+                           <a href="{{pathFor route='account' address=address isMicroChainContract=../isMicroChainContract}}">{{name}}</a>
+                    {{else}}
+                            <a href="{{pathFor route='sendTo' address=address }}" title="{{address}}">{{address}}</a>
+                    {{/if}}
+            
             {{else}}
                 {{tryENS}}
-                <a href="{{pathFor route='sendTo' address=address}}" title="{{address}}">{{address}}</a>
+                <a href="{{pathFor route='sendTo' address=address }}" title="{{address}}">{{address}}</a>
+            {{/unless}}
+
+          {{else}}
+
+            {{#if isMicroContract}}
+                <a href="{{pathFor route='account' address=address isMicroChainContract=../isMicroChainContract}}">
+                     {{#if name}}
+                           <a href="{{pathFor route='account' address=address isMicroChainContract=../isMicroChainContract}}">{{name}}</a>
+                    {{else}}
+                            <a href="{{pathFor route='sendTo' address=address }}" title="{{address}}">{{address}}</a>
+                    {{/if}}
+                </a>
+            {{else}}
+                {{tryENS}}
+                <a href="{{pathFor route='sendTo' address=address }}" title="{{address}}">{{address}}</a>
             {{/if}}
+            
+          {{/if}}
+
         </span>
     {{/with}}
 </template>

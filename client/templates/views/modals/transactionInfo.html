@@ -50,19 +50,20 @@
                 <tr>
                     <td>{{i18n "wallet.transactions.from"}}</td>
                     <td>
-                        {{> elements_account_link address=from}}
+                        {{> elements_account_link address=from FromMother="true"}}
                     </td>
                 </tr>
                 <tr>
                     <td>{{i18n "wallet.transactions.to"}}</td>
                     <td>
                         {{#if to}}
-                            {{> elements_account_link address=to}}
+                            {{> elements_account_link address=to isMicroChainContract=ismicrochain FromMother=MoherChainTX}}
                         {{else}}
-                            {{> elements_createdContractAt contractAddress=contractAddress deployedData=deployedData}}
+                            {{> elements_createdContractAt contractAddress=contractAddress deployedData=deployedData FromMother=MoherChainTX}}
                         {{/if}}
                     </td>
                 </tr>
+                {{#unless isMicroChain}}
                 <tr>
                     <td>{{i18n "wallet.transactions.feePaid"}}</td>
                     <td>{{formatTransactionBalance fee exchangeRates}}</td>
@@ -75,6 +76,7 @@
                     <td>{{i18n "wallet.transactions.gasPrice"}}</td>
                     <td>{{formatTransactionBalance gasPricePerMillion exchangeRates}} {{i18n "wallet.transactions.perMillionGas"}}</td>
                 </tr>
+                {{/unless}}
                 {{#if blockHash}}
                     <tr>
                         <td>{{i18n "wallet.transactions.block"}}</td>

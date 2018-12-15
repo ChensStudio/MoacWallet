@@ -5,7 +5,7 @@ import '../../lib/helpers/templateHelpers.js';
 import '../../lib/moac/walletConnector.js';
 import './accountLink.js';
 import './createdContractAt.js';
-import './transactionTable.html';
+import './MicroChainTransactionTable.html';
 
 /**
 Template Controllers
@@ -28,26 +28,24 @@ Block required until a transaction is confirmed.
 @type Number
 */
 var blocksForConfirmation = moacConfig.requiredConfirmations;
-
 /**
 The default limit, of none is given.
 
 @property defaultLimit
 @type Number
 */
+
 var defaultLimit = 10;
 
-Template['elements_transactions_table'].onCreated(function(){
+Template['elements_microchaintransactions_table'].onCreated(function(){
     this._properties = {
-        cursor: {},
-        // micorcusor:{}
+        cursor: {}
     };
-    //console.log(Transactions.find().fetch());
-    // console.log(Template.instance());
     TemplateVar.set('limit', this.data.limit || defaultLimit);
+    
 });
 
-Template['elements_transactions_table'].helpers({
+Template['elements_microchaintransactions_table'].helpers({
     /**
     Changes the limit of the given cursor
 
@@ -59,9 +57,8 @@ Template['elements_transactions_table'].helpers({
             items = [],
             searchQuery = TemplateVar.get('search'),
             limit = TemplateVar.get('limit'),
-            Mother_collection = window[this.collection] || Transactions,
-            // Micro_collection = MicroChainTransactions;
-            selector = this.ids ? {_id: {$in: this.ids}} : {};
+            collection = MicroChainTransactions,
+            selector = FlowRouter.getParam('address');
         // if search
         if(searchQuery) {
             var pattern = new RegExp('^.*'+ searchQuery.replace(/ +/g,'.*') +'.*$','i');
@@ -90,9 +87,8 @@ Template['elements_transactions_table'].helpers({
             return items;
 
         } else {
-            
-            template._properties.cursor = Mother_collection.find(selector, {sort: {timestamp: -1, blockNumber: -1}, limit: limit});
-            // template._properties.micorcusor = Micro_collection.find(selector, {sort: {timestamp: -1, blockNumber: -1}, limit: limit});
+            template._properties.cursor = collection.find({to:selector}, {sort: {timestamp: -1, blockNumber: -1}, limit: limit});
+            //console.log(template._properties.cursor.fetch());
             return template._properties.cursor.fetch();
         }
     },
@@ -104,14 +100,14 @@ Template['elements_transactions_table'].helpers({
     */
     'hasMore': function(){
         var template = Template.instance();
+        
         template._properties.cursor.limit = null;
         return (!TemplateVar.get('search') && template._properties.cursor.count() > TemplateVar.get('limit'));
     }
 });
 
-Template['elements_transactions_table'].events({
+Template['elements_microchaintransactions_table'].events({
     'click button.show-more': function(e, template){
-         //console.log(window[this.collection]);
         var limit = TemplateVar.get('limit');
         TemplateVar.set('limit', limit + (template.data.limit || defaultLimit));
     },
@@ -132,17 +128,39 @@ The transaction row template
 @class [template] elements_transactions_row
 @constructor
 */
+// Template['elements_microchaintransactions_row'].onCreated(function(){
+//         // console.log(this);
+//         var addr = this.data.to;
+//         // console.log(addr);
+//         contract = MicroChainContracts.findOne({address: addr},{});
+//         // console.log(contract);
+//         scsApi2.init(contract.monitorAddr, contract.monitorPort);
+//         // TemplateVar.set('SCS_BLK_NUM',Template.parentData(1).SCSblockNumber);
+//          var template = Template.instance();
+//          Meteor.setInterval(
+//             function(){
+//                 chain3.scs.getBlockNumber(addr, (error, result) => {
+//                     if(!error){
+//                         // console.log(result);
+//                         TemplateVar.set(template,'SCS_BLK_NUM',result);
+//                      }
+//                  });
+//             }, 3000
+//         );
+//     });
+ 
 
-
-Template['elements_transactions_row'].helpers({
+Template['elements_microchaintransactions_row'].helpers({
     /**
-    Checks if, from the perspective of the selected 
+    Checks if, from the perspective of the selected account
     the transaction was incoming or outgoing.
 
     @method (incomingTx)
     @param {String} account     The _id of the current account
     */
+
     'incomingTx': function(account){
+
         var account = McAccounts.findOne({_id: account}) || Wallets.findOne({_id: account});
         return !!((account && this.from !== account.address) ||
                   (!account && (McAccounts.findOne({address: this.to}) || Wallets.findOne({address: this.to}))));
@@ -153,7 +171,9 @@ Template['elements_transactions_row'].helpers({
     @method (transactionType)
     @return {String}
     */
+
     'transactionType': function(){
+        //console.log(this);
         var to = Helpers.getAccountByAddress(this.to),
             from = Helpers.getAccountByAddress(this.from),
             initiator = Helpers.getAccountByAddress(this.initiator), 
@@ -205,14 +225,19 @@ Template['elements_transactions_row'].helpers({
 
     @method (unConfirmed)
     */
-    'unConfirmed': function() {
-        if(!this.blockNumber || !McBlocks.latest.number)
+
+
+    'unConfirmed': function() {      
+        // console.log('unconfirmed',this);
+        var SCS_BLK_NUM  = Session.get('blockNumber');
+         // console.log(SCS_BLK_NUM);
+        if(!this.blockNumber || !SCS_BLK_NUM)
             return {
                 confirmations: 0,
                 percent: 0
             };
 
-        var currentBlockNumber = McBlocks.latest.number + 1,
+        var currentBlockNumber = SCS_BLK_NUM + 1,
             confirmations = currentBlockNumber - this.blockNumber;
         return (blocksForConfirmation >= confirmations && confirmations >= 0)
             ? {
@@ -228,6 +253,7 @@ Template['elements_transactions_row'].helpers({
     */
     'ownerConfirmationCount': function(){
         var account = Helpers.getAccountByAddress(this.from);
+        //console.log(this);
 
         if(account && this.confirmedOwners)
             return this.confirmedOwners.length +'/'+ account.requiredSignatures;
@@ -293,7 +319,7 @@ Template['elements_transactions_row'].helpers({
 
     @method (ismicrochain)
     */
-    'ismicrochain':function(){
+     'ismicrochain':function(){
         if (CustomContracts.findOne({address:this.to})){
             return 'false';
         }
@@ -302,7 +328,7 @@ Template['elements_transactions_row'].helpers({
 });
 
 
-Template['elements_transactions_row'].events({
+Template['elements_microchaintransactions_row'].events({
     /**
     Open transaction details on click of the <tr>
 
@@ -327,9 +353,11 @@ Template['elements_transactions_row'].events({
     @event click button.approve, click button.revoke
     */
     'click button.approve, click button.revoke': function(e){
+        console.log('revoke pending');
         var _this = this,
             account = Helpers.getAccountByAddress(_this.from),
             ownerAccounts = _.pluck(Helpers.getAccounts({address: {$in: account.owners}}), 'address');
+
 
         if(account) {
 

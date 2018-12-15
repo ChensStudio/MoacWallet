@@ -2,7 +2,7 @@
     {{#if TemplateVar.get "hasCode"}}
         {{#if isMicroChainContract}}
             <div class="dapp-sticky-bar">
-                <i class="icon-layers"></i>  {{TemplateVar.get "blockNumber"}} 
+                <i class="icon-layers"></i>  {{SCSblockNumber}} 
                 <!-- <i class="icon-clock" style="margin-left: 10px;"></i> {{{timeSinceBlock}}}  -->
                 <!-- <span class="hide-on-small">{{{timeSinceBlockText}}}</span> -->
             </div>
@@ -12,7 +12,7 @@
         <!-- EXECUTE CONTRACT -->
         <div class="execute-contract">
             {{#if isMicroChainContract}}
-                <i class="icon-layers"></i>  {{TemplateVar.get "blockNumber"}} 
+                <i class="icon-layers"></i>  {{SCSblockNumber}} 
                 <!-- <i class="icon-clock" style="margin-left: 10px;"></i> {{{timeSinceBlock}}}  -->
                 <!-- <span class="hide-on-small">{{{timeSinceBlockText}}}</span> -->
             {{/if}}
@@ -77,6 +77,13 @@
             {{/if}}
         </div>
     {{/if}}
+
+    <div class="accounts-transactions">
+        {{#if isMicroChainContract}}
+        <h2>{{i18n 'wallet.transactions.latest'}}</h2>
+        {{> elements_microchaintransactions_table}}
+        {{/if}}
+    </div>
 </template>
 
 

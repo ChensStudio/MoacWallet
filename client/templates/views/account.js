@@ -98,6 +98,7 @@ Template['views_account'].helpers({
     @method (account)
     */
     'account': function() {
+        console.log('accont',Helpers.getAccountByAddress(FlowRouter.getParam('address')));
         return Helpers.getAccountByAddress(FlowRouter.getParam('address'));
     },
     /**

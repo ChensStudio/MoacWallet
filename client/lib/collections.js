@@ -18,6 +18,10 @@ new PersistentMinimongo2(MicroChainContracts, 'moac_wallet');
 Transactions = new Mongo.Collection('transactions', {connection: null});
 new PersistentMinimongo2(Transactions, 'moac_wallet');
 
+// Contains the microchain transactions
+MicroChainTransactions = new Mongo.Collection('microchain-transactions', {connection: null});
+new PersistentMinimongo2(MicroChainTransactions, 'moac_wallet');
+
 // Contains the pending confirmations
 PendingConfirmations = new Mongo.Collection('pending-confirmations', {connection: null});
 new PersistentMinimongo2(PendingConfirmations, 'moac_wallet');
