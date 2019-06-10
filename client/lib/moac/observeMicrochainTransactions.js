@@ -313,8 +313,8 @@ observeMicroChainTransactions = function(){
                     if(confirmations < moacConfig.requiredConfirmations && confirmations >= 0) {
                         Helpers.eventLogs('Checking transaction '+ tx.transactionHash +'. Current confirmations: '+ confirmations);
                         // Check if the tx still exists, if not disable the tx
-                        chain3.scs.getTransaction(tx.to, tx.transactionHash, function(e, transaction){
-                            chain3.scs.getTransactionReceipt(tx.to, tx.transactionHash, function(e, receipt){
+                        chain3.scs.getTransactionByHash(tx.to, tx.transactionHash, function(e, transaction){
+                            chain3.scs.getReceiptByHash(tx.to, tx.transactionHash, function(e, receipt){
                                 // console.log('transaction',transaction);
                                 //   console.log('receipt',receipt);
                                 if(e || !receipt || !transaction) {
@@ -348,8 +348,8 @@ observeMicroChainTransactions = function(){
                     if(confirmations > moacConfig.requiredConfirmations || confCount > moacConfig.requiredConfirmations*2) {
 
                         // confirm after a last check
-                        chain3.scs.getTransaction(tx.to, tx.transactionHash, function(e, transaction){
-                            chain3.scs.getTransactionReceipt(tx.to, tx.transactionHash, function(e, receipt){
+                        chain3.scs.getTransactionByHash(tx.to, tx.transactionHash, function(e, transaction){
+                            chain3.scs.getReceiptByHash(tx.to, tx.transactionHash, function(e, receipt){
                                 if(!e) {
                                    
                                     // if still not mined, remove tx
@@ -409,6 +409,7 @@ observeMicroChainTransactions = function(){
             var filter = setInterval(function(){
                 var scs_block = Session.get('blockNumber');
                 chain3.scs.getBlock(tx.to, scs_block, function(e,blockHash){
+                    console.log("get block hash",e,blockHash);
                      updateTransactions(e, blockHash);
                 })
             },10000);

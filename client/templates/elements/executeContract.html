@@ -27,9 +27,12 @@
             
             {{#if TemplateVar.get "executionVisible"}}
                 <br>
-                <h2> {{i18n "wallet.contracts.contractInformation"}} </h2>
-                <div class="dapp-clear-fix"></div>
-
+                <h2> {{i18n "wallet.contracts.contractInformation"}} 
+                        {{#if isMicroChainContract}}
+                    <div class="dapp-clear-fix"><p style="text-transform: lowercase;">{{walletIcon}}{{currentDappAddr}}</p></div>
+                    {{/if}}
+                </h2>
+                
                 <div class="row clear">
                     <div class="col col-8 mobile-full contract-info">
                         {{#if isMicroChainContract}}
@@ -56,21 +59,31 @@
                     </div>
 
                     <div class="col col-4 mobile-full contract-functions">
-                        {{#with (TemplateVar.get "contractFunctions")}}                    
+                            {{#if isMicroChainContract}}  
                             <h2>{{i18n "wallet.contracts.writeToContract"}}</h2>
+                            <h4>Select Dapp Contract</h4>
+                            {{#with thisMicrochain}}
+                            <select class="select-contract" name="select-contract">
+                                {{#each Dapps}}
+                                    <option value={{dappAddr}} >{{dappName}} {{isRegisted dappAddr}}</option>
+                                {{/each}}    
+                            </select>
+                            {{/with}}
+                            {{/if}}
+
+                            {{#with (TemplateVar.get "contractFunctions")}}  
                             <h4>Select Function</h4>
                             <select class="select-contract-function" name="select-contract-function">
-                                <option disabled selected>{{i18n "wallet.contracts.pickFunction"}}</option>
+                                <option disabled selected value='initPickup'>{{i18n "wallet.contracts.pickFunction"}}</option>
                                 {{#each this}}
                                     <option value="{{name}}">{{toSentence name true}}</option>
                                 {{/each}}    
                             </select>
-                            
                             {{#with TemplateVar.get "selectedFunction"}}
                                 {{> elements_executeContract_function}}
                             {{/with}}
-                            
-                        {{/with}}
+                            {{/with}}
+                                                
                     </div>
                 </div>
 

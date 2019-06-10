@@ -24,7 +24,6 @@ tap:i18n-bundler
 chuangbo:cookie
 underscore@1.0.10
 jeeeyul:moment-with-langs
-moaclib:chain3
 moaclib:elements
 moaclib:tools
 moaclib:accounts
@@ -61,3 +60,5 @@ numeral:numeral
 numeral:languages
 hashanp:geopattern
 tap:i18n-ui
+promise
+moaclib:chain3

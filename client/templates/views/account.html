@@ -32,7 +32,7 @@
                     </h1>
                     <h2 class="copyable-address">{{walletIcon}}
                         <!-- <input type="text" value="{{toChecksumAddress address}}" readonly class=""> -->
-                        <span>{{toChecksumAddress address}}</span>
+                        <span style="text-transform: lowercase;">{{toChecksumAddress address}}</span>
                     </h2>
                     <div class="clear"></div>
                     {{> elements_balance balance=balance changeUnit=true showAllDecimals=true}}

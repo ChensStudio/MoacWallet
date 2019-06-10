@@ -1,5 +1,5 @@
-import {Meteor} from 'meteor/meteor';
-import {Template} from 'meteor/templating';
+import { Meteor } from 'meteor/meteor';
+import { Template } from 'meteor/templating';
 import './accountLink.js';
 import '../../lib/helpers/helperFunctions.js';
 import '../../lib/moac/2_chain3scsInit.js';
@@ -8,8 +8,10 @@ import './MicroChainTransactionTable.js';
 
 var contract;
 var templateExecuteContractfunction;    //to use nonce
+var subchainAddr;
 
-function checkMicroChainContract(){
+
+function checkMicroChainContract() {
     var isMicroChainContract = FlowRouter.getParam('isMicroChainContract');
     // console.log('Microchaincontract address: '+ FlowRouter.getParam('address'));
     // console.log('Microchaincontract: '+ isMicroChainContract);
@@ -18,31 +20,32 @@ function checkMicroChainContract(){
 };
 
 
-function getCurrentNonce(contractAddress, template){
+function getCurrentNonce(contractAddress, template) {
     var monitorAddr = contract.monitorAddr;
     var monitorPort = contract.monitorPort;
     var nonce = -1;
 
-    if (monitorAddr !== "" && typeof monitorAddr !== undefined && monitorPort !== "" && typeof monitorPort !== undefined){
+    if (monitorAddr !== "" && typeof monitorAddr !== undefined && monitorPort !== "" && typeof monitorPort !== undefined) {
         var sender = Helpers.getAccountByAddress(TemplateVar.getFrom('.execute-contract select[name="dapp-select-account"]', 'value'));
         // console.log('sender',sender);
         scsApi2.init(monitorAddr, monitorPort);
         chain3.scs.getNonce(contractAddress, sender.address, (error, result) => {
-            if(!error){
+            if (!error) {
                 nonce = result;
-                if (typeof nonce === 'undefined'){
+                if (typeof nonce === 'undefined') {
                     nonce = -1;
                 }
-                else{
-                    MicroChainContracts.upsert({address: contractAddress}, {$set: {
-                        monitorAddr: monitorAddr,
-                        monitorPort: monitorPort
-                    }});
+                else {
+                    MicroChainContracts.upsert({ address: contractAddress }, {
+                        $set: {
+                            monitorAddr: monitorAddr,
+                            monitorPort: monitorPort
+                        }
+                    });
                 }
             }
             var oldnonce = TemplateVar.get(template, 'nonce');
-            if (nonce!==oldnonce)
-            {
+            if (nonce !== oldnonce) {
                 TemplateVar.set(template, 'nonce', nonce);
                 TemplateVar.set(template, 'sending', false);
             }
@@ -50,11 +53,11 @@ function getCurrentNonce(contractAddress, template){
     }
 };
 
-function formatBlockNumber(monitorAddr, monitorPort,template){
+function formatBlockNumber(monitorAddr, monitorPort, template) {
     scsApi2.init(monitorAddr, monitorPort);
 
     chain3.scs.getBlockNumber(contract.address, (error, result) => {
-        if(!error){
+        if (!error) {
             // Session.set('blockNumber', numeral(result).format('0,0'));
             Session.set('blockNumber', result);
         }
@@ -74,76 +77,111 @@ The execute contract template
 @constructor
 */
 
-Template['elements_executeContract'].onCreated(function(){
+Template['elements_executeContract'].onCreated(function () {
     var template = this;
     // console.log(this);
     // Set Defaults
     TemplateVar.set('sending', false);
+    subchainAddr = template.data.address;
 
     // show execute part if its a custom contract
-    if(CustomContracts.findOne({address: template.data.address})||MicroChainContracts.findOne({address: template.data.address}))
+    if (CustomContracts.findOne({ address: template.data.address }) || MicroChainContracts.findOne({ address: template.data.address }))
         TemplateVar.set('executionVisible', true);
 
     // check address for code
-    chain3.mc.getCode(template.data.address, function(e, code) {
-        if(!e && code.length > 2) {
+    chain3.mc.getCode(template.data.address, function (e, code) {
+        if (!e && code.length > 2) {
             TemplateVar.set(template, 'hasCode', true);
         }
     });
 
-    // if(checkMicroChainContract())
-    // {
-    //     Meteor.setInterval(
-    //         function(){
-    //             var contract = MicroChainContracts.findOne({address: template.data.address}, {});
-    //             formatBlockNumber(contract.monitorAddr, contract.monitorPort, template);
-    //         }, 3000
-    //     );
-    // }
+    if (checkMicroChainContract()) {
+        let MicroChain = MicroChainContracts.findOne({ address: template.data.address });
+        TemplateVar.set("MicroChain",MicroChain);
+        let DAPPS = MicroChain.Dapps;
+        scsApi2.init(MicroChain.monitorAddr, MicroChain.monitorPort);
+        TemplateVar.set(template,"current_Dapp",DAPPS[0]);
+
+        chain3.scs.getDappAddrList(template.data.address, function (e, r) {
+            TemplateVar.set(template, "dappList", r);
+        })
+
+        _.each(DAPPS, (dapp) => {
+            if (!dapp.dappAddr) {
+                chain3.scs.getReceiptByHash(MicroChain.address, dapp.TxHash, function (e, TX) {
+                    if (TX) {
+                        MicroChainContracts.update(
+                            { "Dapps.TxHash": dapp.TxHash },
+                            { $set: { "Dapps.$.dappAddr": TX.contractAddress } }
+                        )
+                    }
+                })
+            }
+        })
+    }
 });
 
-
 Template['elements_executeContract'].helpers({
+    'isRegisted'(dappAddr) {
+        if (TemplateVar.get('dappList').indexOf(dappAddr) == -1) {
+            return "(UnRegisted)";
+        }
+        return;
+    },
+    'currentDappAddr'(){
+        return TemplateVar.get("current_Dapp").dappAddr;
+    },
+    'thisMicrochain': function () {
+        return MicroChainContracts.findOne({ address: this.address });
+    },
+
     /**
     Reruns when the data context changes
-
     @method (reactiveContext)
     */
 
-    'reactiveContext': function() {
+    'reactiveContext': function () {
         var addr = this.address;
-
-        if(checkMicroChainContract()){
-            contract = MicroChainContracts.findOne({address: addr}, {});
-            this.jsonInterface = contract.jsonInterface;
-
-            scsApi2.init(contract.monitorAddr, contract.monitorPort);
-            var contractInstance = chain3.dapp(this.jsonInterface).at(addr);
-        }
-        else
-        {
-            var contractInstance = chain3.mc.contract(this.jsonInterface).at(addr);
-        }
-
+        var currentDapp;
         var contractFunctions = [];
         var contractConstants = [];
+        var contractAbi;
 
-        _.each(this.jsonInterface, function(func, i){
+        if (checkMicroChainContract()) {
+            contract = MicroChainContracts.findOne({ address: addr }, {});
+            currentDapp = TemplateVar.get("current_Dapp");
+            if(!currentDapp.dappAddr){
+                return;
+            }
+
+            scsApi2.init(contract.monitorAddr, contract.monitorPort);
+            contractAbi = currentDapp.dappInterface;
+            var contractInstance = chain3.microchain(contractAbi).at(currentDapp.dappAddr);   
+        }
+        else {
+            contractAbi = this.jsonInterface;
+            var contractInstance = chain3.mc.contract(contractAbi).at(addr);
+        }     
+
+        _.each(contractAbi, function (func, i) {
             func = _.clone(func);
-
+            if(currentDapp){
+                func.dappAddr = currentDapp.dappAddr;
+            }
+           
             // Walk throught the jsonInterface and extract functions and constants
-            if(func.type == 'function') {
+            if (func.type == 'function') {
                 func.contractInstance = contractInstance;
                 func.inputs = _.map(func.inputs, Helpers.createTemplateDataFromInput);
 
-                if(func.constant){
+                if (func.constant) {
                     // if it's a constant                        
-                    contractConstants.push(func);                    
+                    contractConstants.push(func);
                 } else {
                     //if its a variable
-                    contractFunctions.push(func);                
+                    contractFunctions.push(func);
                 }
-                
+
             }
         });
 
@@ -155,7 +193,7 @@ Template['elements_executeContract'].helpers({
 
     @method (isMicroChainContract)
     */
-   'isMicroChainContract': function(){
+    'isMicroChainContract': function () {
         return checkMicroChainContract();
     },
     /**
@@ -163,7 +201,7 @@ Template['elements_executeContract'].helpers({
 
     @method (monitorAddr)
     */
-    'monitorAddr': function(){
+    'monitorAddr': function () {
         return contract.monitorAddr;
     },
     /**
@@ -171,112 +209,54 @@ Template['elements_executeContract'].helpers({
 
     @method (monitorPort)
     */
-    'monitorPort': function(){
+    'monitorPort': function () {
         return contract.monitorPort;
     },
-    'SCSblockNumber':function(){  //remove 88-96 \ 48-56 and rewrite this when new api comes
+    'SCSblockNumber': function () {  //remove 88-96 \ 48-56 and rewrite this when new api comes
         var template = Template.instance();
-        if(checkMicroChainContract()) {
-        Meteor.setInterval(
-            function(){
-                var contract = MicroChainContracts.findOne({address: template.data.address}, {});
-                formatBlockNumber(contract.monitorAddr, contract.monitorPort,template);
-            }, 10000
-        );
-    }
-         return numeral(Session.get("blockNumber")).format('0,0');
+        if (checkMicroChainContract()) {
+            Meteor.setInterval(
+                function () {
+                    var contract = MicroChainContracts.findOne({ address: template.data.address }, {});
+                    formatBlockNumber(contract.monitorAddr, contract.monitorPort, template);
+                }, 10000
+            );
+        }
+        return numeral(Session.get("blockNumber")).format('0,0');
     },
-    /**
-    Formats the last block number
-
-    @method (formattedBlockNumber)
-    @return {String}
-    */
-   // 'formattedBlockNumber': function() {
-   //      var template = this;
-
-   //      scsApi2.init(monitorAddr, monitorPort);
-   //      chain3.scs.getBlockNumber(contract.address, (error, result) => {
-   //          if(!error){
-   //              TemplateVar.set(template, 'blockNumber', result);
-   //          }
-   //      });
-   //  },
-    /**
-    Gets the time since the last block
-
-    @method (timeSinceBlock)
-    */
-    // 'timeSinceBlock': function () {
-        
-    //     if (McBlocks.latest.timestamp == 0 
-    //         || typeof McBlocks.latest.timestamp == 'undefined')   
-    //         return false;
-
-    //     var timeSince = moment(McBlocks.latest.timestamp, "X");
-    //     var now = moment();
-    //     var diff = now.diff(timeSince, "seconds");
-
-    //     if (diff > 60 * 5) {
-    //         Helpers.rerun["10s"].tick();
-    //         return '<span class="red">' + timeSince.fromNow(true) + '</span>';
-    //     } else if (diff > 60) {
-    //         Helpers.rerun["10s"].tick();
-    //         return timeSince.fromNow(true);
-    //     } else if (diff < 2) {
-    //         Helpers.rerun["1s"].tick();
-    //         return ''
-    //     } else {
-    //         Helpers.rerun["1s"].tick();
-    //         return diff + "s ";
-    //     }
-    // },
-    /**
-    Formats the time since the last block
-
-    @method (timeSinceBlockText)
-    */
-    // 'timeSinceBlockText': function () {
-        
-    //     if (McBlocks.latest.timestamp == 0 
-    //         || typeof McBlocks.latest.timestamp == 'undefined')   
-    //         return TAPi18n.__('wallet.app.texts.waitingForBlocks');
-
-    //     var timeSince = moment(McBlocks.latest.timestamp, "X");
-    //     var now = moment();
-    //     var diff = now.diff(timeSince, "seconds");
-
-    //     if (diff > 60 * 5) {
-    //         Helpers.rerun["10s"].tick();
-    //         return '<span class="red">' + TAPi18n.__('wallet.app.texts.timeSinceBlock') + '</span>';
-    //     } else if (diff > 60) {
-    //         Helpers.rerun["10s"].tick();
-    //         return TAPi18n.__('wallet.app.texts.timeSinceBlock');
-    //     } else if (diff < 2) {
-    //         Helpers.rerun["1s"].tick();
-    //         return '<span class="blue">' + TAPi18n.__('wallet.app.texts.blockReceived') + '</span>';
-    //     } else {
-    //         Helpers.rerun["1s"].tick();
-    //         return TAPi18n.__('wallet.app.texts.timeSinceBlock');
-    //     }
-    // }
 });
 
 Template['elements_executeContract'].events({
+
+    'change .select-contract': function (e) {
+        let dappAddr = e.target.value;
+        let Dapps = TemplateVar.get("MicroChain").Dapps;
+        let thisDapp = _.filter(Dapps,(dapp)=>{
+            if(dapp.dappAddr == dappAddr){
+                return dapp;
+            }
+        })
+        // console.log(...thisDapp);
+        TemplateVar.set("current_Dapp",...thisDapp);
+        TemplateVar.set('selectedFunction',"");
+        $(".select-contract-function").val("initPickup"); 
+
+    },
     /**
         Select a contract function
     
         @event 'change .select-contract-function
     */
-    'change .select-contract-function': function(e){
+    'change .select-contract-function': function (e) {
         TemplateVar.set('executeData', null);
 
         // change the inputs and data field
-        TemplateVar.set('selectedFunction', _.find(TemplateVar.get('contractFunctions'), function(contract){
-            return contract.name === e.currentTarget.value;
+        TemplateVar.set('selectedFunction', _.find(TemplateVar.get('contractFunctions'), function (thisFunc) {
+            // console.log(contract);
+            return thisFunc.name === e.currentTarget.value;
         }));
 
-        Tracker.afterFlush(function(){
+        Tracker.afterFlush(function () {
             $('.abi-input').trigger('change');
         });
     },
@@ -284,14 +264,14 @@ Template['elements_executeContract'].events({
         Click the show hide button
         @event click .toggle-visibility
     */
-    'click .toggle-visibility': function(){
+    'click .toggle-visibility': function () {
         TemplateVar.set('executionVisible', !TemplateVar.get('executionVisible'));
     },
     /**
         React on user input on Monitor RPC Address
         @event change .monitorAddrInput
     */
-   'keyup .monitorAddrInput, change .monitorAddrInput, input .monitorAddrInput': function(e, template) {
+    'keyup .monitorAddrInput, change .monitorAddrInput, input .monitorAddrInput': function (e, template) {
         TemplateVar.set('monitorAddr', e.currentTarget.value);
         getCurrentNonce(this.address, template);
     },
@@ -299,9 +279,9 @@ Template['elements_executeContract'].events({
         React on user input on Monitor RPC Port
         @event change .monitorAddrInput
     */
-    'keyup .monitorPortInput, change .monitorPortInput, input .monitorPortInput': function(e, template) {
+    'keyup .monitorPortInput, change .monitorPortInput, input .monitorPortInput': function (e, template) {
         TemplateVar.set('monitorPort', e.currentTarget.value);
-        getCurrentNonce(this.address,template);
+        getCurrentNonce(this.address, template);
     }
 });
 
@@ -319,13 +299,13 @@ Formats the values for display
 
 @method formatOutput
 */
-var formatOutput = function(val) {
-    if(_.isArray(val))
+var formatOutput = function (val) {
+    if (_.isArray(val))
         return _.map(val, formatOutput);
     else {
 
         // stringify boolean
-        if(_.isBoolean(val))
+        if (_.isBoolean(val))
             val = val ? 'YES' : 'NO';
 
         // convert bignumber objects
@@ -337,38 +317,38 @@ var formatOutput = function(val) {
     }
 };
 
-Template['elements_executeContract_constant'].onCreated(function(){
+Template['elements_executeContract_constant'].onCreated(function () {
     var template = this;
-   
+
     // initialize our input data prior to the first call
-    TemplateVar.set('inputs', _.map(template.data.inputs, function(input) {
+    TemplateVar.set('inputs', _.map(template.data.inputs, function (input) {
         return Helpers.addInputValue([input], input, {})[0];
     }));
 
     // call the contract functions when data changes and on new blocks
-    this.autorun(function() {
+    this.autorun(function () {
         // make reactive to the latest block
         McBlocks.latest;
 
         // get args for the constant function and add callback
-        var args = TemplateVar.get('inputs').concat(function(e, r) {
-            if(!e) {
+        var args = TemplateVar.get('inputs').concat(function (e, r) {
+            if (!e) {
                 var outputs = [];
                 // single return value
-                if(template.data.outputs.length === 1) {
+                if (template.data.outputs.length === 1) {
                     template.data.outputs[0].value = r;
                     outputs.push(template.data.outputs[0]);
 
-                // multiple return values
+                    // multiple return values
                 } else {
-                    outputs = _.map(template.data.outputs, function(output, i) {
+                    outputs = _.map(template.data.outputs, function (output, i) {
                         output.value = r[i];
                         return output;
                     });
                 }
 
                 TemplateVar.set(template, 'outputs', outputs);
-            } 
+            }
         });
 
         template.data.contractInstance[template.data.name].apply(null, args);
@@ -381,7 +361,7 @@ Template['elements_executeContract_constant'].helpers({
 
     @method (value)
     */
-    'value': function() {
+    'value': function () {
         return _.isArray(this.value) ? formatOutput(this.value) : [formatOutput(this.value)];
     },
     /**
@@ -389,11 +369,11 @@ Template['elements_executeContract_constant'].helpers({
 
     @method (extra)
     */
-    'extra': function() {
+    'extra': function () {
         var data = formatOutput(this); // 1000000000
 
-        if (data > 1400000000 && data < 1800000000 && Math.floor(data/1000) != data/1000) {
-            return '(' + moment(data*1000).fromNow() + ')';
+        if (data > 1400000000 && data < 1800000000 && Math.floor(data / 1000) != data / 1000) {
+            return '(' + moment(data * 1000).fromNow() + ')';
         }
 
         if (data == 'YES') {
@@ -411,7 +391,7 @@ Template['elements_executeContract_constant'].events({
 
     @event change .abi-input, input .abi-input
     */
-    'change .abi-input, input .abi-input, blur .abi-input': function(e, template) {
+    'change .abi-input, input .abi-input, blur .abi-input': function (e, template) {
         var inputs = Helpers.addInputValue(template.data.inputs, this, e.currentTarget);
         TemplateVar.set('inputs', inputs);
     }
@@ -425,52 +405,56 @@ The contract function template
 */
 
 
-Template['elements_executeContract_function'].onCreated(function(){
+Template['elements_executeContract_function'].onCreated(function () {
     var template = this;
     templateExecuteContractfunction = template;
 
     TemplateVar.set('estimatedGas', 350000);
 
     // change the amount when the currency unit is changed
-    template.autorun(function(c){
+    template.autorun(function (c) {
         var unit = McTools.getUnit();
 
-        if(!c.firstRun) {
-            TemplateVar.set('amount', McTools.toSha(template.find('input[name="amount"]').value.replace(',','.'), unit));
+        if (!c.firstRun) {
+            TemplateVar.set('amount', McTools.toSha(template.find('input[name="amount"]').value.replace(',', '.'), unit));
         }
     });
 
-    if(checkMicroChainContract())
-    {
-        
+    if (checkMicroChainContract()) {
+
         Meteor.setInterval(
-            function(){
+            function () {
                 getCurrentNonce(contract.address, template);
             }, 3000
         );
     }
 });
 
-Template['elements_executeContract_function'].onRendered(function(){
+Template['elements_executeContract_function'].onRendered(function () {
     // Run all inputs through formatter to catch bools
     this.$('.abi-input').trigger('change');
+
 });
 
 Template['elements_executeContract_function'].helpers({
-    'reactiveDataContext': function(){
-        if(this.inputs.length === 0)
-        {
-            TemplateVar.set('executeData', this.contractInstance[this.name].getData());
-
-            if (checkMicroChainContract()){
+    'reactiveDataContext': function () {
+        
+        if (this.inputs.length === 0) {
+            // TemplateVar.set('executeData', this.contractInstance[this.name].getData());
+            // console.log(this);
+            if (checkMicroChainContract()) {
+                TemplateVar.set('executeData', this.dappAddr + this.contractInstance[this.name].getData().substring(2));
                 getCurrentNonce(contract.address, templateExecuteContractfunction);
             }
+            else{
+                TemplateVar.set('executeData', this.contractInstance[this.name].getData());
+            }
         }
-    }, 
-    'payable': function(){
+    },
+    'payable': function () {
         return this && this.payable;
     },
-    'estimatedGas': function(){
+    'estimatedGas': function () {
         var estimatedGas = TemplateVar.get('estimatedGas');
         return estimatedGas;
     },
@@ -479,7 +463,7 @@ Template['elements_executeContract_function'].helpers({
 
     @method (isMicroChainContract)
     */
-   'isMicroChainContract': function(){
+    'isMicroChainContract': function () {
         return checkMicroChainContract();
     },
     /**
@@ -487,9 +471,9 @@ Template['elements_executeContract_function'].helpers({
 
     @method (nonce)
     */
-    'nonce': function(){
-          var nonce = TemplateVar.get('nonce');
-          return nonce;
+    'nonce': function () {
+        var nonce = TemplateVar.get('nonce');
+        return nonce;
     }
 });
 
@@ -499,8 +483,8 @@ Template['elements_executeContract_function'].events({
     
     @event keyup input[name="amount"], change input[name="amount"], input input[name="amount"]
     */
-    'keyup input[name="amount"], change input[name="amount"], input input[name="amount"]': function(e, template){
-        var sha = McTools.toSha(e.currentTarget.value.replace(',','.'));
+    'keyup input[name="amount"], change input[name="amount"], input input[name="amount"]': function (e, template) {
+        var sha = McTools.toSha(e.currentTarget.value.replace(',', '.'));
         TemplateVar.set('amount', sha || '0');
     },
     /**
@@ -508,12 +492,15 @@ Template['elements_executeContract_function'].events({
 
     @event change .abi-input, input .abi-input
     */
-    'change .abi-input, input .abi-input, blur .abi-input': function(e, template) {
+    'change .abi-input, input .abi-input, blur .abi-input': function (e, template) {
         var inputs = Helpers.addInputValue(template.data.inputs, this, e.currentTarget);
-    
-        TemplateVar.set('executeData', template.data.contractInstance[template.data.name].getData.apply(null, inputs));
-        if (checkMicroChainContract()){
+        // TemplateVar.set('executeData', template.data.contractInstance[template.data.name].getData.apply(null, inputs));
+        if (checkMicroChainContract()) {
+            TemplateVar.set('executeData', template.data.dappAddr + template.data.contractInstance[template.data.name].getData.apply(null, inputs).substring(2));
             getCurrentNonce(contract.address, template);
+        }
+        else{
+            TemplateVar.set('executeData', template.data.contractInstance[template.data.name].getData.apply(null, inputs));
         }
     },
     /**
@@ -521,7 +508,7 @@ Template['elements_executeContract_function'].events({
 
         @event change .estimtedGasInput
         */
-    'change .estimtedGasInput': function(e, template) {
+    'change .estimtedGasInput': function (e, template) {
         TemplateVar.set('estimatedGas', e.currentTarget.valueAsNumber);
     },
     /**
@@ -529,24 +516,25 @@ Template['elements_executeContract_function'].events({
 
     @event click .execute
     */
-    'click .execute': function(e, template){
-        var to = template.data.contractInstance.address,
+    'click .execute': function (e, template) {
+
+        var to = subchainAddr,
             gasPrice = 50000000000,
             estimatedGas = TemplateVar.get('estimatedGas'), /* (typeof mist == 'undefined')not working */
             amount = TemplateVar.get('amount') || 0,
             selectedAccount = Helpers.getAccountByAddress(TemplateVar.getFrom('.execute-contract select[name="dapp-select-account"]', 'value')),
             data = TemplateVar.get('executeData');
-            // alert(data);
+        // alert(data);
 
-        var latestTransaction =  Transactions.findOne({}, {sort: {timestamp: -1}});
+        var latestTransaction = Transactions.findOne({}, { sort: { timestamp: -1 } });
         if (latestTransaction && latestTransaction.gasPrice)
-            gasPrice = latestTransaction.gasPrice; 
+            gasPrice = latestTransaction.gasPrice;
 
-        if(selectedAccount) {
+        if (selectedAccount) {
 
-            console.log('Providing gas: ', estimatedGas ,' + 50000');
+            console.log('Providing gas: ', estimatedGas, ' + 50000');
 
-            if(selectedAccount.balance === '0')
+            if (selectedAccount.balance === '0')
                 return GlobalNotification.warning({
                     content: 'i18n:wallet.send.error.emptyWallet',
                     duration: 2
@@ -554,31 +542,31 @@ Template['elements_executeContract_function'].events({
 
 
             // The function to send the transaction
-            var sendTransaction = function(estimatedGas){
+            var sendTransaction = function (estimatedGas) {
 
                 TemplateVar.set('sending', true);
 
                 // CONTRACT TX
-                if(contracts['ct_'+ selectedAccount._id]) {
+                if (contracts['ct_' + selectedAccount._id]) {
                     // Load the accounts owned by user and sort by balance
-                    var accounts = McAccounts.find({name: {$exists: true}}, {sort: {name: 1}}).fetch();
+                    var accounts = McAccounts.find({ name: { $exists: true } }, { sort: { name: 1 } }).fetch();
                     accounts.sort(Helpers.sortByBalance);
 
                     // Looks for them among the wallet account owner
-                    var fromAccount = _.find(accounts, function(acc){
-                       return (selectedAccount.owners.indexOf(acc.address)>=0);
+                    var fromAccount = _.find(accounts, function (acc) {
+                        return (selectedAccount.owners.indexOf(acc.address) >= 0);
                     })
 
-                    contracts['ct_'+ selectedAccount._id].execute.sendTransaction(to || '', amount || '', data || '', {
+                    contracts['ct_' + selectedAccount._id].execute.sendTransaction(to || '', amount || '', data || '', {
                         from: fromAccount.address,
                         gasPrice: gasPrice,
                         gas: estimatedGas
-                    }, function(error, txHash){
+                    }, function (error, txHash) {
 
                         TemplateVar.set(template, 'sending', false);
 
                         console.log(error, txHash);
-                        if(!error) {
+                        if (!error) {
                             console.log('SEND from contract', amount);
                             //add transaction to motherchain table
                             addTransactionAfterSend(txHash, amount, selectedAccount.address, to, gasPrice, estimatedGas, data);
@@ -594,15 +582,16 @@ Template['elements_executeContract_function'].events({
                             });
                         }
                     });
-                
-                // SIMPLE TX
+
+                    // SIMPLE TX
                 } else {
                     var tranData;
                     var viaAddr = chain3.vnode.address;
 
-                    if(checkMicroChainContract()){
+                    if (checkMicroChainContract()) {
                         var nonce = TemplateVar.get('nonce');
-                        if(typeof nonce === 'undefined' || nonce === -1){
+                       
+                        if (typeof nonce === 'undefined' || nonce === -1) {
                             TemplateVar.set(template, 'sending', false);
 
                             GlobalNotification.error({
@@ -612,7 +601,7 @@ Template['elements_executeContract_function'].events({
 
                             return;
                         }
-                        tranData={
+                        tranData = {
                             from: selectedAccount.address,
                             to: to,
                             data: data,
@@ -622,11 +611,11 @@ Template['elements_executeContract_function'].events({
                             nonce: nonce,
                             via: viaAddr
                         };
-
+                        console.log(tranData);
                         isMicroChain = true;
                     }
-                    else{
-                        tranData={
+                    else {
+                        tranData = {
                             from: selectedAccount.address,
                             to: to,
                             data: data,
@@ -636,21 +625,21 @@ Template['elements_executeContract_function'].events({
                         };
                     }
 
-                    chain3.mc.sendTransaction(tranData, function(error, txHash){
-                        if(!error) {
-                            if(!checkMicroChainContract()){
-                                addTransactionAfterSend(txHash, amount, selectedAccount.address, to, gasPrice, estimatedGas, data,false);
+                    chain3.mc.sendTransaction(tranData, function (error, txHash) {
+                        if (!error) {
+                            if (!checkMicroChainContract()) {
+                                addTransactionAfterSend(txHash, amount, selectedAccount.address, to, gasPrice, estimatedGas, data, false);
                                 //getCurrentNonce(contract.address, template);
                                 FlowRouter.go('dashboard');
                             }
-                            else{
+                            else {
                                 addMicroChainTransactionAfterSend(txHash, amount, selectedAccount.address, to, gasPrice, estimatedGas, data, true);
                                 getCurrentNonce(contract.address, template);
                             }
-                            
+
                             GlobalNotification.success({
-                               content: 'i18n:wallet.send.subChainTransactionSent',
-                               duration: 2
+                                content: 'i18n:wallet.send.subChainTransactionSent',
+                                duration: 2
                             });
 
                             TemplateVar.set(template, 'sending', false);
@@ -663,15 +652,15 @@ Template['elements_executeContract_function'].events({
                             });
 
                             TemplateVar.set(template, 'sending', false);
-                            if(checkMicroChainContract()){
+                            if (checkMicroChainContract()) {
                                 getCurrentNonce(contract.address, template);
                             }
                         }
                     });
-                }   
+                }
             };
 
-            sendTransaction(estimatedGas);    
+            sendTransaction(estimatedGas);
         }
     }
 });

@@ -61,11 +61,11 @@ Template['elements_balance'].helpers({
 
         template._intervalId = Meteor.setInterval(function(){
             var oldBalance = TemplateVar.get(template, 'balance') || 0,
-                calcBalance = newBalance.minus(oldBalance).dividedBy(10).floor();
+                calcBalance = Math.floor(newBalance.minus(oldBalance).dividedBy(10));
 
             if(oldBalance &&
-               !oldBalance.equals(newBalance) &&
-               (calcBalance.greaterThan(10000000000) || (calcBalance.lessThan(0) && calcBalance.lessThan(-10000000000))))
+               !oldBalance.isEqualTo(newBalance) &&
+               (calcBalance.isGreaterThan(10000000000) || (calcBalance.isLessThan(0) && calcBalance.isLessThan(-10000000000))))
                 TemplateVar.set(template, 'balance', oldBalance.plus(calcBalance));
             else {
                 TemplateVar.set(template, 'balance', newBalance);

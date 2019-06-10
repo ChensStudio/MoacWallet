@@ -77,7 +77,7 @@ minifier-js@2.4.0
 minimongo@1.4.5
 moaclib:accounts@0.1.1
 moaclib:blocks@0.1.1
-moaclib:chain3@0.1.10
+moaclib:chain3@0.1.16
 moaclib:elements@0.1.2
 moaclib:tools@0.1.1
 mobile-experience@1.0.5
