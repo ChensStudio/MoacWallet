@@ -9,7 +9,7 @@ import './MicroChainTransactionTable.js';
 var contract;
 var templateExecuteContractfunction;    //to use nonce
 var subchainAddr;
-
+var trigger = 0;
 
 function checkMicroChainContract() {
     var isMicroChainContract = FlowRouter.getParam('isMicroChainContract');
@@ -82,6 +82,7 @@ Template['elements_executeContract'].onCreated(function () {
     // console.log(this);
     // Set Defaults
     TemplateVar.set('sending', false);
+    Session.set("switchDapp",false);
     subchainAddr = template.data.address;
 
     // show execute part if its a custom contract
@@ -156,7 +157,14 @@ Template['elements_executeContract'].helpers({
 
             scsApi2.init(contract.monitorAddr, contract.monitorPort);
             contractAbi = currentDapp.dappInterface;
-            var contractInstance = chain3.microchain(contractAbi).at(currentDapp.dappAddr);   
+            // var contractInstance = chain3.microchain(contractAbi).at(currentDapp.dappAddr); 
+            
+            var contractInstance = chain3.microchain(this.jsonInterface).getDappBase(subchainAddr, contractAbi, currentDapp.dappAddr,function(e,r){
+                Session.set('trigger',trigger+=1);
+            });
+           
+            // console.log(contractInstance.value());
+            
         }
         else {
             contractAbi = this.jsonInterface;
@@ -184,7 +192,7 @@ Template['elements_executeContract'].helpers({
 
             }
         });
-
+        
         TemplateVar.set('contractConstants', contractConstants);
         TemplateVar.set('contractFunctions', contractFunctions);
     },
@@ -240,6 +248,7 @@ Template['elements_executeContract'].events({
         TemplateVar.set("current_Dapp",...thisDapp);
         TemplateVar.set('selectedFunction',"");
         $(".select-contract-function").val("initPickup"); 
+        // Session.set("switchDapp",!Session.get("switchDapp"))
 
     },
     /**
@@ -319,23 +328,30 @@ var formatOutput = function (val) {
 
 Template['elements_executeContract_constant'].onCreated(function () {
     var template = this;
-
     // initialize our input data prior to the first call
-    TemplateVar.set('inputs', _.map(template.data.inputs, function (input) {
+    console.log("create template",this);
+    
+    TemplateVar.set('inputs',_.map(template.data.inputs, function (input) {
         return Helpers.addInputValue([input], input, {})[0];
-    }));
+    })
+    );
 
     // call the contract functions when data changes and on new blocks
     this.autorun(function () {
+        Session.get('trigger');
         // make reactive to the latest block
+        if(template.data.inputs.length==0){
+            TemplateVar.set("inputs",[]);
+        }
         McBlocks.latest;
-
+   
         // get args for the constant function and add callback
         var args = TemplateVar.get('inputs').concat(function (e, r) {
             if (!e) {
                 var outputs = [];
                 // single return value
                 if (template.data.outputs.length === 1) {
+                   
                     template.data.outputs[0].value = r;
                     outputs.push(template.data.outputs[0]);
 
@@ -346,11 +362,10 @@ Template['elements_executeContract_constant'].onCreated(function () {
                         return output;
                     });
                 }
-
                 TemplateVar.set(template, 'outputs', outputs);
             }
         });
-
+        console.log("template.data.name",template.data.name,template.data.inputs,TemplateVar.get('inputs'));
         template.data.contractInstance[template.data.name].apply(null, args);
     });
 });
