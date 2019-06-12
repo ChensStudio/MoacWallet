@@ -1,94 +1,105 @@
 <template name="elements_executeContract">
     {{#if TemplateVar.get "hasCode"}}
+    {{#if isMicroChainContract}}
+    <div class="dapp-sticky-bar">
+        <i class="icon-layers"></i> {{SCSblockNumber}}  
+        
+        <!-- <span class="hide-on-small">{{{timeSinceBlockText}}}</span> -->
+    </div>
+    {{/if}}
+    {{reactiveContext}}
+    <div class="dapp-clear-fix"></div>
+    <!-- EXECUTE CONTRACT -->
+    <div class="execute-contract">
         {{#if isMicroChainContract}}
-            <div class="dapp-sticky-bar">
-                <i class="icon-layers"></i>  {{SCSblockNumber}} 
-                <!-- <i class="icon-clock" style="margin-left: 10px;"></i> {{{timeSinceBlock}}}  -->
-                <!-- <span class="hide-on-small">{{{timeSinceBlockText}}}</span> -->
-            </div>
+        <i class="icon-layers"></i> {{SCSblockNumber}}
+       
+        <!-- {{{TemplateVar.get "balanceOf"}}}  -->
+        <!-- <i class="icon-clock" style="margin-left: 10px;"></i> {{{timeSinceBlock}}}  -->
+        <!-- <span class="hide-on-small">{{{timeSinceBlockText}}}</span> -->
         {{/if}}
-        {{reactiveContext}}
-        <div class="dapp-clear-fix"></div>
-        <!-- EXECUTE CONTRACT -->
-        <div class="execute-contract">
-            {{#if isMicroChainContract}}
-                <i class="icon-layers"></i>  {{SCSblockNumber}} 
-                <!-- <i class="icon-clock" style="margin-left: 10px;"></i> {{{timeSinceBlock}}}  -->
-                <!-- <span class="hide-on-small">{{{timeSinceBlockText}}}</span> -->
+        <br>
+        <button class="toggle-visibility dapp-block-button dapp-small">
+            {{#if (TemplateVar.get "executionVisible")}}
+            {{i18n "wallet.contracts.buttons.hideContractInfo"}}
+            {{else}}
+            {{i18n "wallet.contracts.buttons.showContractInfo"}}
             {{/if}}
-            <br>
-            <button class="toggle-visibility dapp-block-button dapp-small">
-                {{#if (TemplateVar.get "executionVisible")}}
-                    {{i18n "wallet.contracts.buttons.hideContractInfo"}}
-                {{else}}
-                    {{i18n "wallet.contracts.buttons.showContractInfo"}}
-                {{/if}}
-            </button>
-            
-            {{#if TemplateVar.get "executionVisible"}}
+        </button>
+
+        {{#if TemplateVar.get "executionVisible"}}
+        <br>
+
+        {{#if isMicroChainContract}}
+        <h2> DAPP LIST
+            <div class="dapp-clear-fix">
+                {{#each thisMicrochain.Dapps}}
+                <p style="text-transform: lowercase;padding:5px;margin:1px" class={{isSelected dappAddr}}>{{dappName}}:{{dappAddr}}</p>
+                {{/each}}
+            </div>
+        </h2>
+        {{else}}
+        <h2>{{i18n "wallet.contracts.contractInformation"}}</h2>
+        {{/if}}
+
+
+        <div class="row clear">
+            <div class="col col-8 mobile-full contract-info">
+                {{#if isMicroChainContract}}
+                <h4>
+                    {{i18n "wallet.send.monitorAddr"}}
+                </h4>
+                <input required pattern="^([0-9]{1,3}\.){3}[0-9]{1,3}$" class="monitorAddrInput"
+                    value="{{monitorAddr}}">
                 <br>
-                <h2> {{i18n "wallet.contracts.contractInformation"}} 
-                        {{#if isMicroChainContract}}
-                    <div class="dapp-clear-fix"><p style="text-transform: lowercase;">{{walletIcon}}{{currentDappAddr}}</p></div>
-                    {{/if}}
-                </h2>
-                
-                <div class="row clear">
-                    <div class="col col-8 mobile-full contract-info">
-                        {{#if isMicroChainContract}}
-                            <h4>
-                                {{i18n "wallet.send.monitorAddr"}} 
-                            </h4>
-                            <input required pattern="^([0-9]{1,3}\.){3}[0-9]{1,3}$" class="monitorAddrInput" value="{{monitorAddr}}">
-                            <br>
-                            <h4>
-                                {{i18n "wallet.send.monitorPort"}} 
-                            </h4>
-                            <input required pattern="^[0-9]{1,5}$" class="monitorPortInput" value="{{monitorPort}}">
-                            <br>
-                        {{/if}}
-                        <h2>{{i18n "wallet.contracts.readFromContract"}}</h2>
-                        <table class="contract-constants dapp-zebra">
-                            <tbody>
-                            {{#each (TemplateVar.get "contractConstants")}}
-                                {{> elements_executeContract_constant}}
-                            {{/each}}
-                            </tbody>
-                        </table>
+                <h4>
+                    {{i18n "wallet.send.monitorPort"}}
+                </h4>
+                <input required pattern="^[0-9]{1,5}$" class="monitorPortInput" value="{{monitorPort}}">
+                <br>
+                {{/if}}
+                <h2>{{i18n "wallet.contracts.readFromContract"}}</h2>
+                <table class="contract-constants dapp-zebra">
+                    <tbody>
+                        {{#each (TemplateVar.get "contractConstants")}}
+                        {{> elements_executeContract_constant}}
+                        {{/each}}
+                    </tbody>
+                </table>
 
-                    </div>
+            </div>
 
-                    <div class="col col-4 mobile-full contract-functions">
-                            {{#if isMicroChainContract}}  
-                            <h2>{{i18n "wallet.contracts.writeToContract"}}</h2>
-                            <h4>Select Dapp Contract</h4>
-                            {{#with thisMicrochain}}
-                            <select class="select-contract" name="select-contract">
-                                {{#each Dapps}}
-                                    <option value={{dappAddr}} >{{dappName}} {{isRegisted dappAddr}}</option>
-                                {{/each}}    
-                            </select>
-                            {{/with}}
-                            {{/if}}
+            <div class="col col-4 mobile-full contract-functions">
+                {{#if isMicroChainContract}}
+                <h2>{{i18n "wallet.contracts.writeToContract"}}</h2>
+                <h4>Select Dapp Contract</h4>
+                {{#with thisMicrochain}}
+                <select class="select-contract" name="select-contract">
+                    {{#each Dapps}}
+                    <option value={{dappAddr}}>{{dappName}} {{isRegisted dappAddr}}</option>
+                    {{/each}}
+                </select>
+                {{/with}}
+                {{/if}}
 
-                            {{#with (TemplateVar.get "contractFunctions")}}  
-                            <h4>Select Function</h4>
-                            <select class="select-contract-function" name="select-contract-function">
-                                <option disabled selected value='initPickup'>{{i18n "wallet.contracts.pickFunction"}}</option>
-                                {{#each this}}
-                                    <option value="{{name}}">{{toSentence name true}}</option>
-                                {{/each}}    
-                            </select>
-                            {{#with TemplateVar.get "selectedFunction"}}
-                                {{> elements_executeContract_function}}
-                            {{/with}}
-                            {{/with}}
-                                                
-                    </div>
-                </div>
+                {{#with (TemplateVar.get "contractFunctions")}}
+                <h4>Select Function</h4>
+                <select class="select-contract-function" name="select-contract-function">
+                    <option disabled selected value='initPickup'>{{i18n "wallet.contracts.pickFunction"}}</option>
+                    {{#each this}}
+                    <option value="{{name}}">{{toSentence name true}}</option>
+                    {{/each}}
+                </select>
+                {{#with TemplateVar.get "selectedFunction"}}
+                {{> elements_executeContract_function}}
+                {{/with}}
+                {{/with}}
 
-            {{/if}}
+            </div>
         </div>
+
+        {{/if}}
+    </div>
     {{/if}}
 
     <div class="accounts-transactions">
@@ -105,29 +116,29 @@
         <td>
             <h3>{{{toSentence name}}}</h3>
             {{#each inputs}}
-                {{> Template.dynamic template=template}}
+            {{> Template.dynamic template=template}}
             {{/each}}
         </td>
     </tr>
     <tr>
         <td>
             <dl class="constant-{{name}} dapp-zebra">
-            {{#each (TemplateVar.get "outputs")}}
+                {{#each (TemplateVar.get "outputs")}}
                 {{#if name}}
-                    <dt>{{{toSentence name}}}</dt>
+                <dt>{{{toSentence name}}}</dt>
                 {{/if}}
                 <dd class="output">
                     {{#each value}}
-                        {{#if $eq ../type "address"}}
-                            {{> elements_account_link address=this}}
-                        {{else}}
-                            {{this}}
-                            <em> {{{extra}}} </em>
-                        {{/if}}
-                        <br>
+                    {{#if $eq ../type "address"}}
+                    {{> elements_account_link address=this}}
+                    {{else}}
+                    {{this}}
+                    <em> {{{extra}}} </em>
+                    {{/if}}
+                    <br>
                     {{/each}}
-                </dd> 
-            {{/each}}
+                </dd>
+                {{/each}}
             </dl>
         </td>
     </tr>
@@ -138,11 +149,10 @@
     {{reactiveDataContext}}
 
     {{#each inputs}}
-        {{> Template.dynamic template=template}}
+    {{> Template.dynamic template=template}}
     {{/each}}
 
     <hr class="dapp-clear-fix">
-
     <h4>Execute from</h4>
     {{> dapp_selectAccount accounts=selectAccounts showAccountTypes=true}}
 
@@ -153,28 +163,28 @@
     </h4>
     <input type="number" min="0" name="amount" placeholder="0" step="0.001">
     {{/if}}
-    
+
     <br>
     <textarea readonly rows="6" cols="100">{{TemplateVar.get "executeData"}}</textarea>
     <br>
 
     {{#if isMicroChainContract}}
-        <h4>
-            {{i18n "wallet.send.nonce"}} 
-        </h4>
-        <input type="number" min="0" class="nonceInput" value="{{nonce}}" disabled>
-        <br>
+    <h4>
+        {{i18n "wallet.send.nonce"}}
+    </h4>
+    <input type="number" min="0" class="nonceInput" value="{{nonce}}" disabled>
+    <br>
     {{else}}
-        <h4>
-            {{i18n "wallet.send.provideGas"}} 
-        </h4>
-        <input type="number" min="21000" class="estimtedGasInput" value="{{estimatedGas}}">
-        <br>
+    <h4>
+        {{i18n "wallet.send.provideGas"}}
+    </h4>
+    <input type="number" min="21000" class="estimtedGasInput" value="{{estimatedGas}}">
+    <br>
     {{/if}}
-    {{#if TemplateVar.get "sending"}} 
-        <button class="dapp-block-button execute" disabled>{{i18n 'buttons.sending'}}</button>
+    {{#if TemplateVar.get "sending"}}
+    <button class="dapp-block-button execute" disabled>{{i18n 'buttons.sending'}}</button>
     {{else}}
-        <button class="dapp-block-button execute">{{i18n 'wallet.contracts.buttons.execute'}}</button>
+    <button class="dapp-block-button execute">{{i18n 'wallet.contracts.buttons.execute'}}</button>
     {{/if}}
-    
+
 </template>

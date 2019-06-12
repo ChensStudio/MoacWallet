@@ -9,7 +9,6 @@ import './MicroChainTransactionTable.js';
 var contract;
 var templateExecuteContractfunction;    //to use nonce
 var subchainAddr;
-var trigger = 0;
 
 function checkMicroChainContract() {
     var isMicroChainContract = FlowRouter.getParam('isMicroChainContract');
@@ -82,7 +81,7 @@ Template['elements_executeContract'].onCreated(function () {
     // console.log(this);
     // Set Defaults
     TemplateVar.set('sending', false);
-    Session.set("switchDapp",false);
+    Session.set("switchDapp", false);
     subchainAddr = template.data.address;
 
     // show execute part if its a custom contract
@@ -98,10 +97,10 @@ Template['elements_executeContract'].onCreated(function () {
 
     if (checkMicroChainContract()) {
         let MicroChain = MicroChainContracts.findOne({ address: template.data.address });
-        TemplateVar.set("MicroChain",MicroChain);
+        TemplateVar.set("MicroChain", MicroChain);
         let DAPPS = MicroChain.Dapps;
         scsApi2.init(MicroChain.monitorAddr, MicroChain.monitorPort);
-        TemplateVar.set(template,"current_Dapp",DAPPS[0]);
+        TemplateVar.set(template, "current_Dapp", DAPPS[0]);
 
         chain3.scs.getDappAddrList(template.data.address, function (e, r) {
             TemplateVar.set(template, "dappList", r);
@@ -129,13 +128,21 @@ Template['elements_executeContract'].helpers({
         }
         return;
     },
-    'currentDappAddr'(){
+    'currentDappAddr'() {
         return TemplateVar.get("current_Dapp").dappAddr;
     },
     'thisMicrochain': function () {
         return MicroChainContracts.findOne({ address: this.address });
     },
-
+    'isSelected'(thisAddr) {
+        return TemplateVar.get("current_Dapp").dappAddr == thisAddr ? "dappSelected" : "";
+    },
+    // 'thisBalance'(){
+    //     var template = Template.instance();
+    //     chain3.scs.getBalance(subchainAddr,chain3.mc.accounts[0],function(e,r){
+    //         TemplateVar.set(template,"balanceOf",r);
+    //     })
+    // },
     /**
     Reruns when the data context changes
     @method (reactiveContext)
@@ -151,32 +158,30 @@ Template['elements_executeContract'].helpers({
         if (checkMicroChainContract()) {
             contract = MicroChainContracts.findOne({ address: addr }, {});
             currentDapp = TemplateVar.get("current_Dapp");
-            if(!currentDapp.dappAddr){
+            if (!currentDapp.dappAddr) {
                 return;
             }
 
             scsApi2.init(contract.monitorAddr, contract.monitorPort);
             contractAbi = currentDapp.dappInterface;
             // var contractInstance = chain3.microchain(contractAbi).at(currentDapp.dappAddr); 
-            
-            var contractInstance = chain3.microchain(this.jsonInterface).getDappBase(subchainAddr, contractAbi, currentDapp.dappAddr,function(e,r){
-                Session.set('trigger',trigger+=1);
-            });
-           
+
+            var contractInstance = chain3.microchain(this.jsonInterface).getDappBase(subchainAddr, contractAbi, currentDapp.dappAddr);
+
             // console.log(contractInstance.value());
-            
+
         }
         else {
             contractAbi = this.jsonInterface;
             var contractInstance = chain3.mc.contract(contractAbi).at(addr);
-        }     
+        }
 
         _.each(contractAbi, function (func, i) {
             func = _.clone(func);
-            if(currentDapp){
+            if (currentDapp) {
                 func.dappAddr = currentDapp.dappAddr;
             }
-           
+
             // Walk throught the jsonInterface and extract functions and constants
             if (func.type == 'function') {
                 func.contractInstance = contractInstance;
@@ -192,7 +197,7 @@ Template['elements_executeContract'].helpers({
 
             }
         });
-        
+
         TemplateVar.set('contractConstants', contractConstants);
         TemplateVar.set('contractFunctions', contractFunctions);
     },
@@ -237,18 +242,40 @@ Template['elements_executeContract'].helpers({
 Template['elements_executeContract'].events({
 
     'change .select-contract': function (e) {
+        console.log("rundfasdfasfdasfasd");
         let dappAddr = e.target.value;
         let Dapps = TemplateVar.get("MicroChain").Dapps;
-        let thisDapp = _.filter(Dapps,(dapp)=>{
-            if(dapp.dappAddr == dappAddr){
+        var thisDapp = _.filter(Dapps, (dapp) => {
+            if (dapp.dappAddr == dappAddr) {
                 return dapp;
             }
         })
+       
+        if (TemplateVar.get('dappList').indexOf(dappAddr) == -1) {
+            $(".select-contract option:first").prop("selected", 'selected');
+            
+            TemplateVar.set("current_Dapp", Dapps[0]);
+            Tracker.flush();
+            TemplateVar.set('selectedFunction', _.find(TemplateVar.get('contractFunctions'), function (thisFunc) {
+                return thisFunc.name === "registerDapp";
+                
+            }));
+            Tracker.flush();
+            $(".select-contract-function").val("registerDapp");
+            // console.log("this Dapp",thisDapp);
+            // console.log("this Register",toRegister);
+            $("input[name='dappAddr']").val(thisDapp[0].dappAddr);
+            $("input[name='dappAddr']").removeClass("dapp-error")
+            $("input[name='elements_input_string']").val(JSON.stringify(thisDapp[0].dappInterface));
+            $('.abi-input').trigger('change');
+            return;
+        }
+
         // console.log(...thisDapp);
-        TemplateVar.set("current_Dapp",...thisDapp);
-        TemplateVar.set('selectedFunction',"");
-        $(".select-contract-function").val("initPickup"); 
-        // Session.set("switchDapp",!Session.get("switchDapp"))
+        TemplateVar.set("current_Dapp", ...thisDapp);
+        TemplateVar.set('selectedFunction', "");
+        $(".select-contract-function").val("initPickup");
+
 
     },
     /**
@@ -329,29 +356,29 @@ var formatOutput = function (val) {
 Template['elements_executeContract_constant'].onCreated(function () {
     var template = this;
     // initialize our input data prior to the first call
-    console.log("create template",this);
-    
-    TemplateVar.set('inputs',_.map(template.data.inputs, function (input) {
+    // console.log("create template", this);
+
+    TemplateVar.set('inputs', _.map(template.data.inputs, function (input) {
         return Helpers.addInputValue([input], input, {})[0];
     })
     );
 
     // call the contract functions when data changes and on new blocks
     this.autorun(function () {
-        Session.get('trigger');
+
         // make reactive to the latest block
-        if(template.data.inputs.length==0){
-            TemplateVar.set("inputs",[]);
+        if (template.data.inputs.length == 0) {
+            TemplateVar.set("inputs", []);
         }
         McBlocks.latest;
-   
+
         // get args for the constant function and add callback
         var args = TemplateVar.get('inputs').concat(function (e, r) {
             if (!e) {
                 var outputs = [];
                 // single return value
                 if (template.data.outputs.length === 1) {
-                   
+
                     template.data.outputs[0].value = r;
                     outputs.push(template.data.outputs[0]);
 
@@ -365,7 +392,7 @@ Template['elements_executeContract_constant'].onCreated(function () {
                 TemplateVar.set(template, 'outputs', outputs);
             }
         });
-        console.log("template.data.name",template.data.name,template.data.inputs,TemplateVar.get('inputs'));
+        // console.log("template.data.name", template.data.name, template.data.inputs, TemplateVar.get('inputs'));
         template.data.contractInstance[template.data.name].apply(null, args);
     });
 });
@@ -408,7 +435,11 @@ Template['elements_executeContract_constant'].events({
     */
     'change .abi-input, input .abi-input, blur .abi-input': function (e, template) {
         var inputs = Helpers.addInputValue(template.data.inputs, this, e.currentTarget);
+
         TemplateVar.set('inputs', inputs);
+        // if(template.data.inputs.length == 0){
+        //     TemplateVar.set('inputs', []);
+        // }
     }
 });
 
@@ -453,7 +484,7 @@ Template['elements_executeContract_function'].onRendered(function () {
 
 Template['elements_executeContract_function'].helpers({
     'reactiveDataContext': function () {
-        
+
         if (this.inputs.length === 0) {
             // TemplateVar.set('executeData', this.contractInstance[this.name].getData());
             // console.log(this);
@@ -461,7 +492,7 @@ Template['elements_executeContract_function'].helpers({
                 TemplateVar.set('executeData', this.dappAddr + this.contractInstance[this.name].getData().substring(2));
                 getCurrentNonce(contract.address, templateExecuteContractfunction);
             }
-            else{
+            else {
                 TemplateVar.set('executeData', this.contractInstance[this.name].getData());
             }
         }
@@ -514,7 +545,7 @@ Template['elements_executeContract_function'].events({
             TemplateVar.set('executeData', template.data.dappAddr + template.data.contractInstance[template.data.name].getData.apply(null, inputs).substring(2));
             getCurrentNonce(contract.address, template);
         }
-        else{
+        else {
             TemplateVar.set('executeData', template.data.contractInstance[template.data.name].getData.apply(null, inputs));
         }
     },
@@ -554,7 +585,6 @@ Template['elements_executeContract_function'].events({
                     content: 'i18n:wallet.send.error.emptyWallet',
                     duration: 2
                 });
-
 
             // The function to send the transaction
             var sendTransaction = function (estimatedGas) {
@@ -605,7 +635,7 @@ Template['elements_executeContract_function'].events({
 
                     if (checkMicroChainContract()) {
                         var nonce = TemplateVar.get('nonce');
-                       
+
                         if (typeof nonce === 'undefined' || nonce === -1) {
                             TemplateVar.set(template, 'sending', false);
 

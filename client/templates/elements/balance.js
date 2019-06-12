@@ -65,7 +65,7 @@ Template['elements_balance'].helpers({
 
             if(oldBalance &&
                !oldBalance.isEqualTo(newBalance) &&
-               (calcBalance.isGreaterThan(10000000000) || (calcBalance.isLessThan(0) && calcBalance.isLessThan(-10000000000))))
+               (calcBalance.greaterThan(10000000000) || (calcBalance.lessThan(0) && calcBalance.lessThan(-10000000000))))
                 TemplateVar.set(template, 'balance', oldBalance.plus(calcBalance));
             else {
                 TemplateVar.set(template, 'balance', newBalance);
