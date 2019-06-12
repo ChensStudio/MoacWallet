@@ -26,6 +26,7 @@ function getCurrentNonce(contractAddress, template) {
 
     if (monitorAddr !== "" && typeof monitorAddr !== undefined && monitorPort !== "" && typeof monitorPort !== undefined) {
         var sender = Helpers.getAccountByAddress(TemplateVar.getFrom('.execute-contract select[name="dapp-select-account"]', 'value'));
+        if(!sender.address) return;
         // console.log('sender',sender);
         scsApi2.init(monitorAddr, monitorPort);
         chain3.scs.getNonce(contractAddress, sender.address, (error, result) => {
