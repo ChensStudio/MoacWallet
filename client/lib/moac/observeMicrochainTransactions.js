@@ -323,7 +323,7 @@ observeMicroChainTransactions = function(){
                                     }
                                 // update with receipt
                                 console.log('tx',tx);
-                                if(!tx.blockNumber){
+                                if( !tx.blockNumber){//transaction.status == '0x1' &&
                                     // console.log('transactionBLK',transaction.blockNumber);
                                     updateMicroChainTransaction(tx, transaction, receipt, blockHash);
                                 }

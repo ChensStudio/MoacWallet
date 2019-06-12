@@ -26,7 +26,7 @@ function getCurrentNonce(contractAddress, template) {
 
     if (monitorAddr !== "" && typeof monitorAddr !== undefined && monitorPort !== "" && typeof monitorPort !== undefined) {
         var sender = Helpers.getAccountByAddress(TemplateVar.getFrom('.execute-contract select[name="dapp-select-account"]', 'value'));
-        if(!sender.address) return;
+        if (!sender.address) return;
         // console.log('sender',sender);
         scsApi2.init(monitorAddr, monitorPort);
         chain3.scs.getNonce(contractAddress, sender.address, (error, result) => {
@@ -251,24 +251,26 @@ Template['elements_executeContract'].events({
                 return dapp;
             }
         })
-       
+
         if (TemplateVar.get('dappList').indexOf(dappAddr) == -1) {
             $(".select-contract option:first").prop("selected", 'selected');
-            
+
             TemplateVar.set("current_Dapp", Dapps[0]);
             Tracker.flush();
             TemplateVar.set('selectedFunction', _.find(TemplateVar.get('contractFunctions'), function (thisFunc) {
                 return thisFunc.name === "registerDapp";
-                
+
             }));
             Tracker.flush();
             $(".select-contract-function").val("registerDapp");
-            // console.log("this Dapp",thisDapp);
-            // console.log("this Register",toRegister);
+           
             $("input[name='dappAddr']").val(thisDapp[0].dappAddr);
-            $("input[name='dappAddr']").removeClass("dapp-error")
+            // $("input[name='dappAddr']").select();
+            // document.execCommand("copy");
             $("input[name='elements_input_string']").val(JSON.stringify(thisDapp[0].dappInterface));
             $('.abi-input').trigger('change');
+            $("input[name='dappAddr']").trigger('keyup');
+            
             return;
         }
 
@@ -284,6 +286,9 @@ Template['elements_executeContract'].events({
     
         @event 'change .select-contract-function
     */
+   "keyup input[name='dappAddr']"(){
+        console.log("keyup");
+   },
     'change .select-contract-function': function (e) {
         TemplateVar.set('executeData', null);
 
